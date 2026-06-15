@@ -1,8 +1,8 @@
 # Relatório de Custos GCP — 2026-06-15
 
-- **Período:** 2026-05-16 → 2026-06-15 (30 dias)
+- **Período:** 2026-02-15 → 2026-06-15 (120 dias)
 - **Fonte:** `oplab-mcp-server.billing.gcp_billing_export_resource_v1_01A65F_62F735_7F6904` (BigQuery Billing Export)
-- **Gerado em (UTC):** 2026-06-15 22:03:56
+- **Gerado em (UTC):** 2026-06-15 22:09:37
 
 ## 1. Custo por Serviço (visão macro)
 

@@ -61,6 +61,14 @@ by_project = to_float(run_sql_file("08_por_projeto.sql"), "custo_liquido")
 total = round(sum(r.get("custo_liquido", 0) for r in by_service), 2)
 currency = (by_service[0].get("moeda") if by_service else "BRL") or "BRL"
 
+out_path = os.path.join(ROOT, "docs", "data", "costs.json")
+
+# Proteção: se o export ainda não tem dados (tabela vazia/inexistente), NÃO
+# sobrescreve o costs.json existente — preserva os dados já mostrados no painel.
+if not by_service and not by_sku:
+    print("Sem dados no billing export ainda — mantendo costs.json atual.", file=sys.stderr)
+    sys.exit(0)
+
 data = {
     "generated_at": END.isoformat(),
     "fonte": "Atualizado automaticamente a partir do BigQuery Billing Export.",
@@ -73,7 +81,6 @@ data = {
     "by_project": by_project,
 }
 
-out_path = os.path.join(ROOT, "docs", "data", "costs.json")
 os.makedirs(os.path.dirname(out_path), exist_ok=True)
 with open(out_path, "w", encoding="utf-8") as fh:
     json.dump(data, fh, ensure_ascii=False, indent=2)

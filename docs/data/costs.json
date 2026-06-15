@@ -4,6 +4,7 @@
   "period": { "start": "2026-06-01", "end": "2026-06-14" },
   "currency": "BRL",
   "total": 59.06,
+  "by_calls": [],
   "by_mcp": [
     { "mcp": "Cloud Run — MCPs (agregado de junho; dados reais separam por serviço)", "requisicoes": 1144, "cpu_segundos": 766991, "custo_liquido": 59.05, "custo_por_requisicao": 0.0516 }
   ],

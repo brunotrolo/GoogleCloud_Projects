@@ -58,6 +58,13 @@
       <p class="muted" id="dayEmpty" style="display:none">Disponível após ligar o BigQuery Billing Export (detalhe diário).</p>
     </section>
 
+    <section id="callsSection">
+      <h2>📞 Chamadas por dia (por MCP)</h2>
+      <p class="muted" style="margin-top:-6px">Quantas vezes cada MCP foi acionado por dia — origem: logs de requisição do Cloud Run.</p>
+      <canvas id="callsChart" height="120"></canvas>
+      <p class="muted" id="callsEmpty" style="display:none">Disponível após configurar o log sink (ver docs/LOGS.md) e definir o secret LOGS_TABLE.</p>
+    </section>
+
     <section id="mcpSection">
       <h2>🤖 Uso por MCP — chamadas e custo por chamada</h2>
       <p class="muted" style="margin-top:-6px">Cada chamada de ferramenta do MCP ≈ 1 requisição. Aqui você vê quantas chamadas e o custo médio de cada uma.</p>
@@ -122,6 +129,31 @@
           d.by_service[0].servico + " · " + fmt(d.by_service[0].custo_liquido, cur);
       if (d.by_sku && d.by_sku.length)
         document.getElementById("topSku").textContent = d.by_sku[0].sku;
+
+      // gráfico de chamadas por dia (por MCP), origem logs
+      if (d.by_calls && d.by_calls.length) {
+        const dias = [...new Set(d.by_calls.map(x => x.dia))].sort();
+        const mcps = [...new Set(d.by_calls.map(x => x.mcp))];
+        const cores = ["#4f9cf9", "#f7b955", "#5fd38d", "#e06c9f", "#a78bfa"];
+        const datasets = mcps.map((m, i) => ({
+          label: m,
+          data: dias.map(dia => {
+            const hit = d.by_calls.find(x => x.dia === dia && x.mcp === m);
+            return hit ? hit.chamadas : 0;
+          }),
+          backgroundColor: cores[i % cores.length]
+        }));
+        new Chart(document.getElementById("callsChart"), {
+          type: "bar",
+          data: { labels: dias, datasets },
+          options: { plugins: { legend: { labels: { color: "#8b98a5" } } },
+            scales: { x: { stacked: true, ticks: { color: "#8b98a5" } },
+                      y: { stacked: true, ticks: { color: "#8b98a5" } } } }
+        });
+      } else {
+        document.getElementById("callsChart").style.display = "none";
+        document.getElementById("callsEmpty").style.display = "block";
+      }
 
       // tabela por MCP (chamadas + custo por chamada)
       const fmt6 = (n) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: cur, minimumFractionDigits: 4, maximumFractionDigits: 6 }).format(n || 0);

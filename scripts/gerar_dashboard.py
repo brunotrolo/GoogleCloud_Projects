@@ -16,6 +16,7 @@ from datetime import date, timedelta
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TABLE = os.environ.get("BQ_BILLING_TABLE")
+LOGS_TABLE = os.environ.get("LOGS_TABLE")  # opcional: logs de requisição do Cloud Run
 DIAS = int(os.environ.get("DIAS", "30"))
 
 if not TABLE:
@@ -29,7 +30,8 @@ def run_sql_file(fname: str):
     path = os.path.join(ROOT, "queries", fname)
     with open(path, encoding="utf-8") as fh:
         sql = fh.read()
-    sql = (sql.replace("@TABLE@", TABLE)
+    sql = (sql.replace("@TABLE@", TABLE or "")
+              .replace("@LOGS@", LOGS_TABLE or "")
               .replace("@START@", START.isoformat())
               .replace("@END@", END.isoformat()))
     out = subprocess.run(
@@ -64,6 +66,11 @@ for r in by_mcp:
     req = r.get("requisicoes") or 0
     r["custo_por_requisicao"] = round(r.get("custo_liquido", 0) / req, 6) if req else 0
 
+# chamadas por dia (logs do Cloud Run) — só se LOGS_TABLE estiver definido
+by_calls = []
+if LOGS_TABLE:
+    by_calls = to_float(run_sql_file("10_chamadas_por_dia.sql"), "chamadas", "latencia_media_s")
+
 total = round(sum(r.get("custo_liquido", 0) for r in by_service), 2)
 currency = (by_service[0].get("moeda") if by_service else "BRL") or "BRL"
 
@@ -77,6 +84,7 @@ if not by_service and not by_sku:
 
 data = {
     "by_mcp": by_mcp,
+    "by_calls": by_calls,
     "generated_at": END.isoformat(),
     "fonte": "Atualizado automaticamente a partir do BigQuery Billing Export.",
     "period": {"start": START.isoformat(), "end": END.isoformat()},

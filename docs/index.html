@@ -3,207 +3,299 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monitoria de Custos GCP — cada centavo e sua origem</title>
+  <title>Cloud Cost Radar — GCP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
     :root {
-      --bg: #0f1419; --card: #1a212b; --line: #2a3441;
-      --txt: #e6edf3; --muted: #8b98a5; --accent: #4f9cf9; --warn: #f7b955;
+      --bg: #0a0e17; --bg2: #0e1420;
+      --card: rgba(22, 29, 43, 0.7); --card-brd: rgba(255,255,255,.07);
+      --txt: #eef2f8; --muted: #8a97a8; --dim: #5b6678;
+      --accent: #6ea8fe; --accent2: #8b5cf6;
+      --green: #34d399; --amber: #fbbf24; --red: #f87171; --pink: #f472b6;
+      --grad: linear-gradient(135deg, #6ea8fe 0%, #8b5cf6 100%);
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg); color: var(--txt); line-height: 1.5;
+      font-family: 'Inter', -apple-system, sans-serif; color: var(--txt);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(110,168,254,.12), transparent 60%),
+        radial-gradient(1000px 500px at 110% 10%, rgba(139,92,246,.12), transparent 55%),
+        var(--bg);
+      min-height: 100vh; line-height: 1.5; letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
     }
-    .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
-    h1 { font-size: 1.5rem; margin: 0 0 4px; }
-    .sub { color: var(--muted); font-size: .9rem; margin-bottom: 24px; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-    .card .label { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
-    .card .value { font-size: 1.8rem; font-weight: 700; margin-top: 4px; }
-    .card .value.big { color: var(--accent); }
-    section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
-    section h2 { font-size: 1.05rem; margin: 0 0 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-    th { color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; }
-    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-    .bar-cell { position: relative; }
-    .bar { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(79,156,249,.15); border-radius: 4px; z-index: 0; }
-    .bar-cell span { position: relative; z-index: 1; }
-    .note { background: rgba(247,185,85,.1); border: 1px solid rgba(247,185,85,.35); color: var(--warn);
-            border-radius: 10px; padding: 12px 16px; font-size: .88rem; margin-bottom: 20px; }
-    .muted { color: var(--muted); }
-    footer { color: var(--muted); font-size: .8rem; text-align: center; margin-top: 32px; }
-    a { color: var(--accent); }
+    .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    /* Header */
+    header.top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .logo { width: 46px; height: 46px; border-radius: 13px; background: var(--grad);
+      display: grid; place-items: center; font-size: 24px; box-shadow: 0 8px 24px rgba(110,168,254,.35); }
+    .brand h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.03em; }
+    .brand .tag { color: var(--muted); font-size: .82rem; font-weight: 500; }
+    .period { text-align: right; }
+    .period .chip { display: inline-flex; align-items: center; gap: 7px; background: var(--card);
+      border: 1px solid var(--card-brd); padding: 8px 14px; border-radius: 999px; font-size: .82rem; font-weight: 500; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .period small { display: block; color: var(--dim); font-size: .72rem; margin-top: 6px; }
+
+    .note { background: linear-gradient(90deg, rgba(251,191,36,.12), transparent); border: 1px solid rgba(251,191,36,.28);
+      color: #f5d58a; border-radius: 14px; padding: 12px 18px; font-size: .85rem; margin-bottom: 24px; }
+
+    /* KPI cards */
+    .kpis { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 22px; }
+    @media (max-width: 880px) { .kpis { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 520px) { .kpis { grid-template-columns: 1fr; } }
+    .kpi { position: relative; background: var(--card); backdrop-filter: blur(14px);
+      border: 1px solid var(--card-brd); border-radius: 18px; padding: 20px 22px; overflow: hidden;
+      transition: transform .2s ease, border-color .2s ease; }
+    .kpi:hover { transform: translateY(-3px); border-color: rgba(110,168,254,.4); }
+    .kpi .k-label { color: var(--muted); font-size: .76rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; display: flex; align-items: center; gap: 7px; }
+    .kpi .k-val { font-size: 1.7rem; font-weight: 800; margin-top: 10px; letter-spacing: -0.03em; }
+    .kpi.hero { background: linear-gradient(135deg, rgba(110,168,254,.16), rgba(139,92,246,.10)); border-color: rgba(110,168,254,.3); }
+    .kpi.hero .k-val { font-size: 2.5rem; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .kpi .k-sub { color: var(--dim); font-size: .78rem; margin-top: 6px; }
+    .kpi .spark { position: absolute; right: -6px; bottom: -6px; font-size: 60px; opacity: .06; }
+
+    /* Grid of charts */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: var(--card); backdrop-filter: blur(14px); border: 1px solid var(--card-brd);
+      border-radius: 18px; padding: 20px 22px; }
+    .panel h2 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 9px; }
+    .panel .desc { color: var(--muted); font-size: .8rem; margin-bottom: 16px; }
+    .panel.full { grid-column: 1 / -1; }
+    .chart-box { position: relative; height: 260px; }
+    .empty { color: var(--dim); font-size: .85rem; padding: 30px 0; text-align: center; font-style: italic; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+    th, td { text-align: left; padding: 11px 12px; }
+    thead th { color: var(--muted); font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--card-brd); }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .15s; }
+    tbody tr:hover { background: rgba(110,168,254,.06); }
+    td.num, th.num { text-align: right; }
+    .barcell { position: relative; min-width: 220px; }
+    .barcell .fill { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 26px; border-radius: 7px;
+      background: linear-gradient(90deg, rgba(110,168,254,.35), rgba(139,92,246,.18)); z-index: 0; }
+    .barcell .lbl { position: relative; z-index: 1; }
+    .tag-svc { display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 6px; background: rgba(110,168,254,.14); color: var(--accent); font-weight: 600; }
+    .pill { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+    .pill.red { color: var(--red); } .pill.green { color: var(--green); } .pill.amber { color: var(--amber); }
+
+    footer { color: var(--dim); font-size: .78rem; text-align: center; margin-top: 36px; line-height: 1.7; }
+    footer a { color: var(--accent); text-decoration: none; }
+    .skl { color: var(--dim); }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>💸 Monitoria de Custos GCP</h1>
-    <div class="sub" id="meta">Carregando…</div>
+    <header class="top">
+      <div class="brand">
+        <div class="logo">📡</div>
+        <div>
+          <h1>Cloud Cost Radar</h1>
+          <div class="tag">Cada centavo do Google Cloud, rastreado em tempo real</div>
+        </div>
+      </div>
+      <div class="period">
+        <span class="chip"><span class="dot"></span> <span id="period">carregando…</span></span>
+        <small id="genAt"></small>
+      </div>
+    </header>
 
     <div id="fonte" class="note" style="display:none"></div>
 
-    <div class="cards">
-      <div class="card"><div class="label">Total no período</div><div class="value big" id="total">—</div></div>
-      <div class="card"><div class="label">Maior serviço</div><div class="value" id="topService">—</div></div>
-      <div class="card"><div class="label">Maior origem (SKU)</div><div class="value" id="topSku" style="font-size:1rem">—</div></div>
+    <div class="kpis">
+      <div class="kpi hero">
+        <div class="k-label">💰 Total no período</div>
+        <div class="k-val mono" id="kTotal">—</div>
+        <div class="k-sub" id="kTotalSub"></div>
+        <div class="spark">💸</div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">🏷️ Maior serviço</div>
+        <div class="k-val" id="kService" style="font-size:1.2rem">—</div>
+        <div class="k-sub" id="kServiceVal"></div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">🎯 Maior origem</div>
+        <div class="k-val" id="kSku" style="font-size:.98rem">—</div>
+        <div class="k-sub" id="kSkuVal"></div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">🤖 Custo médio / chamada</div>
+        <div class="k-val mono" id="kPerCall">—</div>
+        <div class="k-sub" id="kCalls"></div>
+      </div>
     </div>
 
-    <section id="daySection">
-      <h2>📈 Custo por dia</h2>
-      <canvas id="dayChart" height="120"></canvas>
-      <p class="muted" id="dayEmpty" style="display:none">Disponível após ligar o BigQuery Billing Export (detalhe diário).</p>
-    </section>
+    <div class="grid">
+      <div class="panel">
+        <h2>🍩 Distribuição por serviço</h2>
+        <div class="desc">Qual produto do GCP pesa mais na fatura</div>
+        <div class="chart-box"><canvas id="serviceChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2>📊 Top origens (SKU)</h2>
+        <div class="desc">Os itens exatos que mais cobram</div>
+        <div class="chart-box"><canvas id="skuChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2>📈 Custo por dia</h2>
+        <div class="desc">Tendência diária do gasto</div>
+        <div class="chart-box"><canvas id="dayChart"></canvas><div class="empty" id="dayEmpty" style="display:none">Aguardando o BigQuery Billing Export popular o detalhe diário…</div></div>
+      </div>
+      <div class="panel">
+        <h2>📞 Chamadas por dia (por MCP)</h2>
+        <div class="desc">Volume de uso de cada MCP — origem: logs do Cloud Run</div>
+        <div class="chart-box"><canvas id="callsChart"></canvas><div class="empty" id="callsEmpty" style="display:none">Aguardando os logs de requisição… aparece assim que você usar os MCPs.</div></div>
+      </div>
+    </div>
 
-    <section id="callsSection">
-      <h2>📞 Chamadas por dia (por MCP)</h2>
-      <p class="muted" style="margin-top:-6px">Quantas vezes cada MCP foi acionado por dia — origem: logs de requisição do Cloud Run.</p>
-      <canvas id="callsChart" height="120"></canvas>
-      <p class="muted" id="callsEmpty" style="display:none">Disponível após configurar o log sink (ver docs/LOGS.md) e definir o secret LOGS_TABLE.</p>
-    </section>
-
-    <section id="mcpSection">
+    <div class="panel full" style="margin-bottom:16px">
       <h2>🤖 Uso por MCP — chamadas e custo por chamada</h2>
-      <p class="muted" style="margin-top:-6px">Cada chamada de ferramenta do MCP ≈ 1 requisição. Aqui você vê quantas chamadas e o custo médio de cada uma.</p>
+      <div class="desc">Cada chamada de ferramenta ≈ 1 requisição. Multiplique o custo unitário pelo nº de chamadas de uma interação.</div>
       <table id="mcpTable"><thead><tr>
         <th>MCP</th><th class="num">Chamadas</th><th class="num">CPU (s)</th><th class="num">Custo total</th><th class="num">Custo / chamada</th>
       </tr></thead><tbody></tbody></table>
-    </section>
+    </div>
 
-    <section>
+    <div class="panel full">
       <h2>🔎 Origem de cada centavo — por SKU</h2>
-      <p class="muted" style="margin-top:-6px">O item exato cobrado. É aqui que você vê de onde vem cada R$.</p>
+      <div class="desc">O item exato cobrado dentro de cada serviço. É aqui que você vê de onde vem cada R$.</div>
       <table id="skuTable"><thead><tr>
-        <th>Serviço</th><th>SKU (item cobrado)</th><th class="num">Uso</th><th class="num">Custo</th>
+        <th>Serviço</th><th class="barcell">SKU (item cobrado)</th><th class="num">Uso</th><th class="num">Custo</th>
       </tr></thead><tbody></tbody></table>
-    </section>
-
-    <section>
-      <h2>📦 Por serviço</h2>
-      <table id="serviceTable"><thead><tr>
-        <th>Serviço</th><th class="num">Custo</th>
-      </tr></thead><tbody></tbody></table>
-    </section>
-
-    <section id="projSection" style="display:none">
-      <h2>🗂️ Por projeto</h2>
-      <table id="projTable"><thead><tr>
-        <th>Projeto</th><th class="num">Custo</th>
-      </tr></thead><tbody></tbody></table>
-    </section>
+    </div>
 
     <footer>
-      Atualizado automaticamente pelo GitHub Actions a partir do BigQuery Billing Export.<br>
-      <span id="genAt"></span>
+      Atualizado automaticamente pelo GitHub Actions a partir do BigQuery Billing Export + logs do Cloud Run.<br>
+      <span id="footGen"></span> · <a href="https://github.com/brunotrolo/GoogleCloud_Projects">repositório</a>
     </footer>
   </div>
 
   <script>
-    const fmt = (n, cur) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: cur || "BRL" }).format(n || 0);
-    const fmtNum = (n) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(n || 0);
+    Chart.defaults.color = "#8a97a8";
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 12;
+    const PALETTE = ["#6ea8fe", "#8b5cf6", "#34d399", "#fbbf24", "#f472b6", "#f87171", "#22d3ee", "#a3e635"];
+    const cf = (n, cur, d) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: cur || "BRL", minimumFractionDigits: d ?? 2, maximumFractionDigits: d ?? 2 }).format(n || 0);
+    const nf = (n) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(n || 0);
 
     fetch("./data/costs.json?cb=" + Date.now())
-      .then(r => r.json())
-      .then(d => render(d))
-      .catch(e => { document.getElementById("meta").textContent = "Não foi possível carregar os dados: " + e; });
+      .then(r => r.json()).then(render)
+      .catch(e => document.getElementById("period").textContent = "erro ao carregar: " + e);
 
     function render(d) {
       const cur = d.currency || "BRL";
-      document.getElementById("meta").textContent =
-        `Período: ${d.period.start} → ${d.period.end}`;
-      document.getElementById("genAt").textContent = "Gerado em: " + (d.generated_at || "—");
-      document.getElementById("total").textContent = fmt(d.total, cur);
+      document.getElementById("period").textContent = `${d.period.start} → ${d.period.end}`;
+      document.getElementById("genAt").textContent = "atualizado: " + (d.generated_at || "—");
+      document.getElementById("footGen").textContent = "Gerado em " + (d.generated_at || "—");
 
-      if (d.fonte) {
-        const f = document.getElementById("fonte");
-        f.style.display = "block";
-        f.textContent = "ℹ️ " + d.fonte;
+      if (d.fonte) { const f = document.getElementById("fonte"); f.style.display = "block"; f.textContent = "ℹ️ " + d.fonte; }
+
+      // KPIs
+      document.getElementById("kTotal").textContent = cf(d.total, cur);
+      const nDays = Math.max(1, (new Date(d.period.end) - new Date(d.period.start)) / 86400000 + 1);
+      document.getElementById("kTotalSub").textContent = "≈ " + cf(d.total / nDays, cur) + " / dia · projeção 30d " + cf(d.total / nDays * 30, cur);
+
+      if (d.by_service && d.by_service.length) {
+        document.getElementById("kService").textContent = d.by_service[0].servico;
+        document.getElementById("kServiceVal").textContent = cf(d.by_service[0].custo_liquido, cur);
+      }
+      if (d.by_sku && d.by_sku.length) {
+        document.getElementById("kSku").textContent = shorten(d.by_sku[0].sku, 42);
+        document.getElementById("kSkuVal").textContent = cf(d.by_sku[0].custo_liquido, cur);
+      }
+      if (d.by_mcp && d.by_mcp.length) {
+        const totReq = d.by_mcp.reduce((s, r) => s + (r.requisicoes || 0), 0);
+        const totCost = d.by_mcp.reduce((s, r) => s + (r.custo_liquido || 0), 0);
+        document.getElementById("kPerCall").textContent = totReq ? cf(totCost / totReq, cur, 4) : "—";
+        document.getElementById("kCalls").textContent = nf(totReq) + " chamadas";
       }
 
-      // cards de destaque
-      if (d.by_service && d.by_service.length)
-        document.getElementById("topService").textContent =
-          d.by_service[0].servico + " · " + fmt(d.by_service[0].custo_liquido, cur);
-      if (d.by_sku && d.by_sku.length)
-        document.getElementById("topSku").textContent = d.by_sku[0].sku;
+      // Donut serviço
+      const svc = (d.by_service || []).filter(s => s.custo_liquido > 0);
+      if (svc.length) doughnut("serviceChart", svc.map(s => s.servico), svc.map(s => s.custo_liquido), cur);
 
-      // gráfico de chamadas por dia (por MCP), origem logs
-      if (d.by_calls && d.by_calls.length) {
-        const dias = [...new Set(d.by_calls.map(x => x.dia))].sort();
-        const mcps = [...new Set(d.by_calls.map(x => x.mcp))];
-        const cores = ["#4f9cf9", "#f7b955", "#5fd38d", "#e06c9f", "#a78bfa"];
-        const datasets = mcps.map((m, i) => ({
-          label: m,
-          data: dias.map(dia => {
-            const hit = d.by_calls.find(x => x.dia === dia && x.mcp === m);
-            return hit ? hit.chamadas : 0;
-          }),
-          backgroundColor: cores[i % cores.length]
-        }));
-        new Chart(document.getElementById("callsChart"), {
-          type: "bar",
-          data: { labels: dias, datasets },
-          options: { plugins: { legend: { labels: { color: "#8b98a5" } } },
-            scales: { x: { stacked: true, ticks: { color: "#8b98a5" } },
-                      y: { stacked: true, ticks: { color: "#8b98a5" } } } }
-        });
-      } else {
-        document.getElementById("callsChart").style.display = "none";
-        document.getElementById("callsEmpty").style.display = "block";
-      }
+      // Barras horizontais SKU (top 7)
+      const sku = (d.by_sku || []).slice(0, 7);
+      if (sku.length) hbar("skuChart", sku.map(s => shorten(s.sku, 34)), sku.map(s => s.custo_liquido), cur);
 
-      // tabela por MCP (chamadas + custo por chamada)
-      const fmt6 = (n) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: cur, minimumFractionDigits: 4, maximumFractionDigits: 6 }).format(n || 0);
-      fillTable("mcpTable", (d.by_mcp || []), row => `
-        <td>${row.mcp || ""}</td>
-        <td class="num">${fmtNum(row.requisicoes)}</td>
-        <td class="num">${fmtNum(row.cpu_segundos)}</td>
-        <td class="num">${fmt(row.custo_liquido, cur)}</td>
-        <td class="num">${fmt6(row.custo_por_requisicao)}</td>`);
+      // Área custo por dia
+      if (d.by_day && d.by_day.length) area("dayChart", d.by_day.map(x => x.dia), d.by_day.map(x => x.custo_liquido), cur);
+      else showEmpty("dayChart", "dayEmpty");
 
-      // tabela SKU (com barra proporcional)
+      // Barras empilhadas chamadas
+      if (d.by_calls && d.by_calls.length) stackedCalls("callsChart", d.by_calls);
+      else showEmpty("callsChart", "callsEmpty");
+
+      // Tabela MCP
+      fillTable("mcpTable", (d.by_mcp || []), r => `
+        <td><span class="tag-svc">${shorten(r.mcp, 48)}</span></td>
+        <td class="num mono">${nf(r.requisicoes)}</td>
+        <td class="num mono">${nf(r.cpu_segundos)}</td>
+        <td class="num mono">${cf(r.custo_liquido, cur)}</td>
+        <td class="num pill amber">${cf(r.custo_por_requisicao, cur, 4)}</td>`);
+
+      // Tabela SKU com barras
       const maxSku = Math.max(...(d.by_sku || []).map(s => s.custo_liquido), 0.0001);
-      fillTable("skuTable", (d.by_sku || []), row => `
-        <td>${row.servico || ""}</td>
-        <td class="bar-cell"><div class="bar" style="width:${(row.custo_liquido / maxSku * 100)}%"></div><span>${row.sku || ""}</span></td>
-        <td class="num">${fmtNum(row.quantidade)} ${row.unidade || ""}</td>
-        <td class="num">${fmt(row.custo_liquido, cur)}</td>`);
-
-      // tabela serviços
-      fillTable("serviceTable", (d.by_service || []), row => `
-        <td>${row.servico}</td><td class="num">${fmt(row.custo_liquido, cur)}</td>`);
-
-      // tabela projetos
-      if (d.by_project && d.by_project.length) {
-        document.getElementById("projSection").style.display = "block";
-        fillTable("projTable", d.by_project, row => `
-          <td>${row.projeto_nome || row.projeto_id || ""}</td><td class="num">${fmt(row.custo_liquido, cur)}</td>`);
-      }
-
-      // gráfico por dia
-      if (d.by_day && d.by_day.length) {
-        new Chart(document.getElementById("dayChart"), {
-          type: "bar",
-          data: {
-            labels: d.by_day.map(x => x.dia),
-            datasets: [{ label: "Custo (" + cur + ")", data: d.by_day.map(x => x.custo_liquido), backgroundColor: "#4f9cf9" }]
-          },
-          options: { plugins: { legend: { display: false } },
-            scales: { x: { ticks: { color: "#8b98a5" } }, y: { ticks: { color: "#8b98a5" } } } }
-        });
-      } else {
-        document.getElementById("dayChart").style.display = "none";
-        document.getElementById("dayEmpty").style.display = "block";
-      }
+      fillTable("skuTable", (d.by_sku || []), r => `
+        <td><span class="tag-svc">${r.servico || ""}</span></td>
+        <td class="barcell"><div class="fill" style="width:${Math.max(2, r.custo_liquido / maxSku * 100)}%"></div><span class="lbl">${r.sku || ""}</span></td>
+        <td class="num mono skl">${nf(r.quantidade)} ${r.unidade || ""}</td>
+        <td class="num pill ${r.custo_liquido >= maxSku * 0.5 ? 'red' : ''}">${cf(r.custo_liquido, cur)}</td>`);
     }
 
-    function fillTable(id, rows, rowHtml) {
+    function shorten(s, n) { s = s || ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+    function showEmpty(canvasId, emptyId) { document.getElementById(canvasId).style.display = "none"; document.getElementById(emptyId).style.display = "block"; }
+    function fillTable(id, rows, html) {
       const tb = document.querySelector("#" + id + " tbody");
-      tb.innerHTML = rows.map(r => "<tr>" + rowHtml(r) + "</tr>").join("")
-        || `<tr><td colspan="9" class="muted">Sem dados.</td></tr>`;
+      tb.innerHTML = rows.length ? rows.map(r => "<tr>" + html(r) + "</tr>").join("") : `<tr><td colspan="9" class="empty">Sem dados ainda.</td></tr>`;
+    }
+    const gridCfg = { grid: { color: "rgba(255,255,255,.05)" }, border: { display: false } };
+
+    function doughnut(id, labels, data, cur) {
+      new Chart(document.getElementById(id), {
+        type: "doughnut",
+        data: { labels, datasets: [{ data, backgroundColor: PALETTE, borderColor: "#0a0e17", borderWidth: 3, hoverOffset: 8 }] },
+        options: { cutout: "62%", plugins: { legend: { position: "right", labels: { boxWidth: 10, boxHeight: 10, padding: 12, font: { size: 11 } } },
+          tooltip: { callbacks: { label: c => " " + c.label + ": " + cf(c.parsed, cur) } } } }
+      });
+    }
+    function hbar(id, labels, data, cur) {
+      new Chart(document.getElementById(id), {
+        type: "bar",
+        data: { labels, datasets: [{ data, backgroundColor: labels.map((_, i) => PALETTE[i % PALETTE.length]), borderRadius: 6, barThickness: 18 }] },
+        options: { indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => " " + cf(c.parsed.x, cur) } } },
+          scales: { x: gridCfg, y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10.5 } } } } }
+      });
+    }
+    function area(id, labels, data, cur) {
+      const ctx = document.getElementById(id).getContext("2d");
+      const g = ctx.createLinearGradient(0, 0, 0, 260);
+      g.addColorStop(0, "rgba(110,168,254,.45)"); g.addColorStop(1, "rgba(110,168,254,0)");
+      new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets: [{ data, fill: true, backgroundColor: g, borderColor: "#6ea8fe", borderWidth: 2.5, tension: .35, pointRadius: 3, pointBackgroundColor: "#6ea8fe" }] },
+        options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => " " + cf(c.parsed.y, cur) } } },
+          scales: { x: { grid: { display: false }, border: { display: false } }, y: gridCfg } }
+      });
+    }
+    function stackedCalls(id, rows) {
+      const dias = [...new Set(rows.map(x => x.dia))].sort();
+      const mcps = [...new Set(rows.map(x => x.mcp))];
+      const ds = mcps.map((m, i) => ({ label: shorten(m, 22), data: dias.map(dia => { const h = rows.find(x => x.dia === dia && x.mcp === m); return h ? h.chamadas : 0; }),
+        backgroundColor: PALETTE[i % PALETTE.length], borderRadius: 5, stack: "s" }));
+      new Chart(document.getElementById(id), { type: "bar", data: { labels: dias, datasets: ds },
+        options: { plugins: { legend: { labels: { boxWidth: 10, font: { size: 11 } } } },
+          scales: { x: { stacked: true, grid: { display: false }, border: { display: false } }, y: { stacked: true, ...gridCfg } } } });
     }
   </script>
 </body>

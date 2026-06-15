@@ -42,20 +42,26 @@ jobs:
       - name: Setup gcloud + bq
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Gerar relatório
+      - name: Gerar relatório (Markdown)
         env:
           BQ_BILLING_TABLE: ${{ secrets.BQ_BILLING_TABLE }}
           DIAS: ${{ github.event.inputs.dias || '30' }}
         run: ./scripts/gerar_relatorio.sh
 
-      - name: Commitar relatório
+      - name: Gerar painel (JSON p/ GitHub Pages)
+        env:
+          BQ_BILLING_TABLE: ${{ secrets.BQ_BILLING_TABLE }}
+          DIAS: ${{ github.event.inputs.dias || '30' }}
+        run: python3 scripts/gerar_dashboard.py
+
+      - name: Commitar relatório e painel
         run: |
           git config user.name  "cost-report-bot"
           git config user.email "actions@github.com"
-          git add reports/
+          git add reports/ docs/data/costs.json
           if git diff --cached --quiet; then
-            echo "Sem mudanças no relatório."
+            echo "Sem mudanças."
           else
-            git commit -m "chore: relatório de custos GCP $(date -u +%F)"
+            git commit -m "chore: atualiza custos GCP $(date -u +%F)"
             git push
           fi

@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-15 (dados de exemplo — fatura de junho/2026)",
+  "fonte": "Relatório de faturamento exportado manualmente (1–14 jun 2026). Após ligar o BigQuery Billing Export, este arquivo passa a ser atualizado automaticamente.",
+  "period": { "start": "2026-06-01", "end": "2026-06-14" },
+  "currency": "BRL",
+  "total": 59.06,
+  "by_service": [
+    { "servico": "Cloud Run", "custo_liquido": 59.05 },
+    { "servico": "Artifact Registry", "custo_liquido": 0.02 },
+    { "servico": "Cloud Storage", "custo_liquido": 0.00 },
+    { "servico": "Secret Manager", "custo_liquido": 0.00 },
+    { "servico": "Cloud Build", "custo_liquido": 0.00 }
+  ],
+  "by_sku": [
+    { "servico": "Cloud Run", "sku": "Services CPU (Instance-based billing) in us-east1", "custo_liquido": 39.21, "quantidade": 617352.91, "unidade": "second" },
+    { "servico": "Cloud Run", "sku": "Services CPU (Request-based billing)", "custo_liquido": 19.57, "quantidade": 142298.39, "unidade": "second" },
+    { "servico": "Cloud Run", "sku": "Services Min Instance CPU Tier 2 (Request-based billing)", "custo_liquido": 0.13, "quantidade": 6285.5, "unidade": "second" },
+    { "servico": "Cloud Run", "sku": "Services CPU (Instance-based billing) in southamerica-east1", "custo_liquido": 0.11, "quantidade": 914.21, "unidade": "second" },
+    { "servico": "Cloud Run", "sku": "Services CPU Tier 2 (Request-based billing)", "custo_liquido": 0.03, "quantidade": 139.72, "unidade": "second" },
+    { "servico": "Artifact Registry", "sku": "Artifact Registry Storage", "custo_liquido": 0.02, "quantidade": 0.53, "unidade": "gibibyte month" }
+  ],
+  "by_day": [],
+  "by_project": []
+}

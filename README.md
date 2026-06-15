@@ -8,6 +8,13 @@ A fonte é o **BigQuery Billing Export detalhado** (nível de recurso), que regi
 cada SKU em cada recurso. O relatório se gera **sozinho todo dia** via GitHub Actions
 e é commitado em [`reports/`](reports/) — depois é só me pedir pra ler e analisar.
 
+## 📊 Painel web (GitHub Pages)
+
+Há também um **painel HTML** (`docs/index.html`) que mostra visualmente o total,
+o custo por serviço, **a origem de cada centavo (por SKU)**, por dia e por projeto.
+Para publicar, veja [`docs/PAGES.md`](docs/PAGES.md). Ele já vem semeado com dados
+reais de exemplo e passa a se atualizar sozinho junto com o relatório.
+
 ## Como funciona
 
 ```

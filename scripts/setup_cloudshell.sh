@@ -17,8 +17,8 @@
 set -euo pipefail
 
 # ===================== EDITE AQUI =====================
-PROJETO="oplab-sheets-mcp-project"     # projeto que contém o dataset do billing export
-TABELA="oplab-sheets-mcp-project.billing.gcp_billing_export_resource_v1_01A65F_62F735_7F6904"  # nome COMPLETO da tabela do export
+PROJETO="oplab-mcp-server"             # projeto que contém o dataset do billing export
+TABELA="oplab-mcp-server.billing.gcp_billing_export_resource_v1_01A65F_62F735_7F6904"  # nome COMPLETO da tabela do export
 REPO="brunotrolo/GoogleCloud_Projects" # repo onde está o painel
 # ======================================================
 

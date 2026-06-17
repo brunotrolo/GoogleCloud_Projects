@@ -34,6 +34,24 @@
     .fresh-stale{background:rgba(248,113,113,.16);border:1px solid rgba(248,113,113,.55);color:#fca5a5;animation:blink 1.6s infinite}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
 
+    /* Free tier box */
+    .freebox{background:var(--card);border:1px solid var(--brd);border-radius:18px;padding:20px 22px;margin-bottom:18px}
+    .freebox.ok{background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(52,211,153,.05));border-color:rgba(52,211,153,.45)}
+    .freebox.pay{background:linear-gradient(135deg,rgba(248,113,113,.16),rgba(248,113,113,.05));border-color:rgba(248,113,113,.5)}
+    .free-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .free-l{color:var(--muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+    .free-v{font-size:2.6rem;font-weight:900;line-height:1.1;margin-top:4px}
+    .free-sub{color:var(--muted);font-size:.85rem;margin-top:4px}
+    .free-tag{font-size:1.05rem;font-weight:900;padding:10px 18px;border-radius:12px}
+    .free-tag.ok{background:rgba(52,211,153,.2);color:#6ee7b7}
+    .free-tag.pay{background:rgba(248,113,113,.2);color:#fca5a5}
+    .gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+    @media(max-width:680px){.gauges{grid-template-columns:1fr}}
+    .gauge .gl{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:6px}
+    .gauge .track{height:10px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden}
+    .gauge .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#34d399,#6ea8fe)}
+    .gauge .fill.warn{background:linear-gradient(90deg,#fbbf24,#f87171)}
+    .gauge .gp{font-size:.72rem;color:var(--dim);margin-top:5px}
     /* Insights */
     .insights{display:grid;gap:10px;margin-bottom:20px}
     .ins{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--brd);border-left-width:4px;border-radius:12px;padding:13px 16px;font-size:.98rem;font-weight:600}
@@ -90,6 +108,18 @@
     </header>
 
     <div id="freshness" class="fresh" style="display:none"></div>
+
+    <div class="freebox" id="freebox" style="display:none">
+      <div class="free-head">
+        <div>
+          <div class="free-l">A PAGAR ESTE MÊS <span id="freeMes" style="color:var(--dim)"></span></div>
+          <div class="free-v" id="freeVal">—</div>
+          <div class="free-sub" id="freeSub"></div>
+        </div>
+        <div class="free-tag" id="freeTag">—</div>
+      </div>
+      <div class="gauges" id="gauges"></div>
+    </div>
 
     <div class="insights" id="insights"></div>
 
@@ -161,6 +191,31 @@
       else{const h=(Date.now()-gen.getTime())/3.6e6;
         if(h<=12){fb.className="fresh fresh-ok";fb.innerHTML=`🟢 Dados atualizados há ${age(h)} · em tempo quase real`;}
         else{fb.className="fresh fresh-stale";fb.innerHTML=`🔴 DADOS DESATUALIZADOS há ${age(h)} — não confie nos valores até atualizar`;}}
+
+      // ---------- FREE TIER: vou pagar ou não? ----------
+      const ft=d.free_tier;
+      if(ft){
+        const box=document.getElementById("freebox");box.style.display="block";
+        const ok=ft.dentro_do_free;
+        box.className="freebox "+(ok?"ok":"pay");
+        document.getElementById("freeMes").textContent="· "+ft.mes;
+        document.getElementById("freeVal").textContent=ok?"R$ 0,00":BRL(ft.cobranca_mes);
+        document.getElementById("freeTag").textContent=ok?"✅ DENTRO DO FREE":"⚠️ VAI PAGAR";
+        document.getElementById("freeTag").className="free-tag "+(ok?"ok":"pay");
+        document.getElementById("freeSub").innerHTML=ok
+          ? "Seu uso do mês cabe na cota gratuita do Cloud Run. Nada a pagar até estourar os medidores abaixo."
+          : `Você ultrapassou a cota gratuita. Custo estimado <b>após</b> o free tier.`;
+        const g=[
+          {n:"CPU (vCPU·s)",u:ft.vcpu_used,f:ft.vcpu_free},
+          {n:"Memória (GiB·s)",u:ft.gib_used,f:ft.gib_free},
+          {n:"Requisições",u:ft.req_used,f:ft.req_free},
+        ];
+        document.getElementById("gauges").innerHTML=g.map(x=>{
+          const p=Math.min(100,x.u/x.f*100);const warn=p>=80;
+          return `<div class="gauge"><div class="gl"><span>${x.n}</span><span>${Math.round(p)}%</span></div>
+            <div class="track"><div class="fill ${warn?'warn':''}" style="width:${p}%"></div></div>
+            <div class="gp">${NF(x.u)} de ${NF(x.f)} grátis</div></div>`;}).join("");
+      }
 
       // ---------- preparar dados ----------
       const days=[...new Set((d.by_day||[]).map(x=>x.dia))].sort();

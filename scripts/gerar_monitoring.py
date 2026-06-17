@@ -31,7 +31,13 @@ SERVICES = [
 # Preços Cloud Run us-east1 (request-based), em USD. Ajustáveis por env.
 PRICE_CPU = float(os.environ.get("PRICE_CPU_VCPU_S", "0.000024"))   # USD por vCPU-segundo
 PRICE_MEM = float(os.environ.get("PRICE_MEM_GIB_S", "0.0000025"))   # USD por GiB-segundo
+PRICE_REQ = float(os.environ.get("PRICE_REQ", "0.0000004"))         # USD por requisição
 USD_BRL = float(os.environ.get("USD_BRL", "5.40"))
+
+# Free tier mensal do Cloud Run (por conta de faturamento)
+FREE_VCPU_S = 180_000     # vCPU-segundos grátis/mês
+FREE_GIB_S = 360_000      # GiB-segundos grátis/mês
+FREE_REQ = 2_000_000      # requisições grátis/mês
 
 client = monitoring_v3.MetricServiceClient()
 now = datetime.now(timezone.utc)
@@ -41,6 +47,29 @@ interval = monitoring_v3.TimeInterval(
     {"end_time": {"seconds": int(now.timestamp())},
      "start_time": {"seconds": int(start.timestamp())}}
 )
+
+
+def total_metric(project: str, service: str, metric: str, t_interval) -> float:
+    """Soma total de um metric/serviço dentro de um intervalo (um único balde)."""
+    secs = int(t_interval.end_time.timestamp() - t_interval.start_time.timestamp()) + 60
+    aggregation = monitoring_v3.Aggregation({
+        "alignment_period": {"seconds": secs},
+        "per_series_aligner": monitoring_v3.Aggregation.Aligner.ALIGN_DELTA,
+        "cross_series_reducer": monitoring_v3.Aggregation.Reducer.REDUCE_SUM,
+        "group_by_fields": ["resource.labels.service_name"],
+    })
+    flt = f'metric.type="{metric}" AND resource.labels.service_name="{service}"'
+    tot = 0.0
+    try:
+        for ts in client.list_time_series(request={
+            "name": f"projects/{project}", "filter": flt, "interval": t_interval,
+            "view": monitoring_v3.ListTimeSeriesRequest.TimeSeriesView.FULL, "aggregation": aggregation,
+        }):
+            for p in ts.points:
+                tot += float(p.value.double_value or p.value.int64_value)
+    except Exception as e:  # noqa: BLE001
+        print(f"AVISO total {service}/{metric}: {e}", file=sys.stderr)
+    return tot
 
 
 def daily_sum(project: str, service: str, metric: str):
@@ -123,7 +152,39 @@ last_day = by_day[-1]["dia"] if by_day else None
 
 by_service = [{"servico": "Cloud Run (estimado)", "custo_liquido": round(total_cost, 2)}]
 
+# ---------------------------------------------------------------------------
+# FREE TIER do mês corrente — o que importa pra "vou pagar ou não?"
+# ---------------------------------------------------------------------------
+month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+month_interval = monitoring_v3.TimeInterval(
+    {"end_time": {"seconds": int(now.timestamp())},
+     "start_time": {"seconds": int(month_start.timestamp())}}
+)
+mtd_vcpu_s = 0.0   # vCPU-segundos no mês
+mtd_gib_s = 0.0    # GiB-segundos no mês
+mtd_req = 0.0      # requisições no mês
+for project, service, vcpu, mem in SERVICES:
+    bsec = total_metric(project, service, "run.googleapis.com/container/billable_instance_time", month_interval)
+    mtd_vcpu_s += bsec * vcpu
+    mtd_gib_s += bsec * mem
+    mtd_req += total_metric(project, service, "run.googleapis.com/request_count", month_interval)
+
+billed_vcpu = max(0.0, mtd_vcpu_s - FREE_VCPU_S)
+billed_gib = max(0.0, mtd_gib_s - FREE_GIB_S)
+billed_req = max(0.0, mtd_req - FREE_REQ)
+cobranca_mes = (billed_vcpu * PRICE_CPU + billed_gib * PRICE_MEM + billed_req * PRICE_REQ) * USD_BRL
+
+free_tier = {
+    "mes": now.strftime("%Y-%m"),
+    "vcpu_used": round(mtd_vcpu_s), "vcpu_free": FREE_VCPU_S,
+    "gib_used": round(mtd_gib_s), "gib_free": FREE_GIB_S,
+    "req_used": round(mtd_req), "req_free": FREE_REQ,
+    "cobranca_mes": round(cobranca_mes, 2),
+    "dentro_do_free": cobranca_mes < 0.01,
+}
+
 data = {
+    "free_tier": free_tier,
     "generated_at": now.strftime("%Y-%m-%d %H:%M UTC"),
     "fonte": "Cloud Monitoring (tempo quase real). Custo é ESTIMADO a partir do tempo faturável de CPU/memória do Cloud Run.",
     "data_source": "monitoring",

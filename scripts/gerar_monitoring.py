@@ -32,7 +32,7 @@ SERVICES = [
 PRICE_CPU = float(os.environ.get("PRICE_CPU_VCPU_S", "0.000024"))   # USD por vCPU-segundo
 PRICE_MEM = float(os.environ.get("PRICE_MEM_GIB_S", "0.0000025"))   # USD por GiB-segundo
 PRICE_REQ = float(os.environ.get("PRICE_REQ", "0.0000004"))         # USD por requisição
-USD_BRL = float(os.environ.get("USD_BRL", "5.40"))
+USD_BRL = float(os.environ.get("USD_BRL", "5.76"))  # calibrado pela fatura real (jun/2026)
 
 # Free tier mensal do Cloud Run (por conta de faturamento)
 FREE_VCPU_S = 180_000     # vCPU-segundos grátis/mês

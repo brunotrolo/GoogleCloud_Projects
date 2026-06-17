@@ -1,28 +1,236 @@
 {
-  "generated_at": "2026-06-15 (dados de exemplo — fatura de junho/2026)",
-  "fonte": "Relatório de faturamento exportado manualmente (1–14 jun 2026). Após ligar o BigQuery Billing Export, este arquivo passa a ser atualizado automaticamente.",
-  "period": { "start": "2026-06-01", "end": "2026-06-14" },
+  "generated_at": "2026-06-17 02:39 UTC",
+  "fonte": "Cloud Monitoring (tempo quase real). Custo é ESTIMADO a partir do tempo faturável de CPU/memória do Cloud Run.",
+  "data_source": "monitoring",
+  "last_data_day": "2026-06-17",
+  "period": {
+    "start": "2026-06-03",
+    "end": "2026-06-17"
+  },
   "currency": "BRL",
-  "total": 59.06,
-  "by_calls": [],
+  "total": 72.3,
   "by_mcp": [
-    { "mcp": "Cloud Run — MCPs (agregado de junho; dados reais separam por serviço)", "requisicoes": 1144, "cpu_segundos": 766991, "custo_liquido": 59.05, "custo_por_requisicao": 0.0516 }
+    {
+      "mcp": "oplab-sheets-mcp",
+      "requisicoes": 964,
+      "billable_segundos": 271987,
+      "custo_liquido": 37.09,
+      "custo_por_requisicao": 0.03847
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "requisicoes": 1047,
+      "billable_segundos": 258275,
+      "custo_liquido": 35.22,
+      "custo_por_requisicao": 0.033635
+    }
+  ],
+  "by_calls": [
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-17",
+      "chamadas": 101
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-16",
+      "chamadas": 188
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-15",
+      "chamadas": 1
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-14",
+      "chamadas": 9
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-13",
+      "chamadas": 25
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-12",
+      "chamadas": 94
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-11",
+      "chamadas": 24
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-10",
+      "chamadas": 6
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-09",
+      "chamadas": 6
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-08",
+      "chamadas": 89
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-07",
+      "chamadas": 93
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-06",
+      "chamadas": 159
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-05",
+      "chamadas": 199
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-04",
+      "chamadas": 53
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-17",
+      "chamadas": 104
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-16",
+      "chamadas": 105
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-15",
+      "chamadas": 16
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-14",
+      "chamadas": 40
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-13",
+      "chamadas": 27
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-12",
+      "chamadas": 74
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-11",
+      "chamadas": 23
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-10",
+      "chamadas": 3
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-09",
+      "chamadas": 4
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-08",
+      "chamadas": 207
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-07",
+      "chamadas": 56
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-06",
+      "chamadas": 82
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-05",
+      "chamadas": 194
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-04",
+      "chamadas": 29
+    }
   ],
   "by_service": [
-    { "servico": "Cloud Run", "custo_liquido": 59.05 },
-    { "servico": "Artifact Registry", "custo_liquido": 0.02 },
-    { "servico": "Cloud Storage", "custo_liquido": 0.00 },
-    { "servico": "Secret Manager", "custo_liquido": 0.00 },
-    { "servico": "Cloud Build", "custo_liquido": 0.00 }
+    {
+      "servico": "Cloud Run (estimado)",
+      "custo_liquido": 72.3
+    }
   ],
-  "by_sku": [
-    { "servico": "Cloud Run", "sku": "Services CPU (Instance-based billing) in us-east1", "custo_liquido": 39.21, "quantidade": 617352.91, "unidade": "second" },
-    { "servico": "Cloud Run", "sku": "Services CPU (Request-based billing)", "custo_liquido": 19.57, "quantidade": 142298.39, "unidade": "second" },
-    { "servico": "Cloud Run", "sku": "Services Min Instance CPU Tier 2 (Request-based billing)", "custo_liquido": 0.13, "quantidade": 6285.5, "unidade": "second" },
-    { "servico": "Cloud Run", "sku": "Services CPU (Instance-based billing) in southamerica-east1", "custo_liquido": 0.11, "quantidade": 914.21, "unidade": "second" },
-    { "servico": "Cloud Run", "sku": "Services CPU Tier 2 (Request-based billing)", "custo_liquido": 0.03, "quantidade": 139.72, "unidade": "second" },
-    { "servico": "Artifact Registry", "sku": "Artifact Registry Storage", "custo_liquido": 0.02, "quantidade": 0.53, "unidade": "gibibyte month" }
+  "by_sku": [],
+  "by_day": [
+    {
+      "dia": "2026-06-04",
+      "custo_liquido": 24.39
+    },
+    {
+      "dia": "2026-06-05",
+      "custo_liquido": 8.56
+    },
+    {
+      "dia": "2026-06-06",
+      "custo_liquido": 8.21
+    },
+    {
+      "dia": "2026-06-07",
+      "custo_liquido": 4.92
+    },
+    {
+      "dia": "2026-06-08",
+      "custo_liquido": 4.36
+    },
+    {
+      "dia": "2026-06-09",
+      "custo_liquido": 0.0
+    },
+    {
+      "dia": "2026-06-10",
+      "custo_liquido": 0.0
+    },
+    {
+      "dia": "2026-06-11",
+      "custo_liquido": 1.98
+    },
+    {
+      "dia": "2026-06-12",
+      "custo_liquido": 5.45
+    },
+    {
+      "dia": "2026-06-13",
+      "custo_liquido": 0.77
+    },
+    {
+      "dia": "2026-06-14",
+      "custo_liquido": 1.51
+    },
+    {
+      "dia": "2026-06-15",
+      "custo_liquido": 0.49
+    },
+    {
+      "dia": "2026-06-16",
+      "custo_liquido": 6.5
+    },
+    {
+      "dia": "2026-06-17",
+      "custo_liquido": 5.16
+    }
   ],
-  "by_day": [],
   "by_project": []
 }

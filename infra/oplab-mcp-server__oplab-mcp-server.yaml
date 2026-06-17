@@ -1,0 +1,14 @@
+# Snapshot seguro (sem valores de env/secrets) — oplab-mcp-server @ oplab-mcp-server
+service: oplab-mcp-server
+project: oplab-mcp-server
+region: us-east1
+image: us-east1-docker.pkg.dev/oplab-mcp-server/cloud-run-source-deploy/oplab-mcp-server@sha256:5797a2b200fab95e5936d10b92fbc1400c6db3e831c4f30a07ca8683c8f8d460
+cpu: 1
+memory: 512Mi
+timeoutSeconds: 120
+concurrency: 80
+minScale: 
+maxScale: 2
+cpuThrottling: true
+envVarNames:
+  - OPLAB_ACCESS_TOKEN

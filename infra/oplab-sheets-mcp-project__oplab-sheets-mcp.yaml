@@ -1,0 +1,17 @@
+# Snapshot seguro (sem valores de env/secrets) — oplab-sheets-mcp @ oplab-sheets-mcp-project
+service: oplab-sheets-mcp
+project: oplab-sheets-mcp-project
+region: us-east1
+image: us-east1-docker.pkg.dev/oplab-sheets-mcp-project/cloud-run-source-deploy/oplab-sheets-mcp@sha256:d4ab4f72e4ddb0a1b8e3c9b00d6e150dcf4677be55cb827a44870ebd9a1f1a17
+cpu: 1
+memory: 512Mi
+timeoutSeconds: 120
+concurrency: 80
+minScale: 
+maxScale: 2
+cpuThrottling: true
+envVarNames:
+  - SPREADSHEET_ID
+  - BUILD_ID
+  - APPS_SCRIPT_WEB_APP_URL
+  - APPS_SCRIPT_TOKEN

@@ -46,6 +46,12 @@
 
     .note { background: linear-gradient(90deg, rgba(251,191,36,.12), transparent); border: 1px solid rgba(251,191,36,.28);
       color: #f5d58a; border-radius: 14px; padding: 12px 18px; font-size: .85rem; margin-bottom: 24px; }
+    .fresh { border-radius: 14px; padding: 14px 18px; font-size: .95rem; font-weight: 600; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px; }
+    .fresh-ok { background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.4); color: #6ee7b7; }
+    .fresh-stale { background: rgba(248,113,113,.16); border: 1px solid rgba(248,113,113,.55); color: #fca5a5;
+      animation: blink 1.6s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.6} }
 
     /* KPI cards */
     .kpis { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 22px; }
@@ -109,6 +115,7 @@
       </div>
     </header>
 
+    <div id="freshness" style="display:none"></div>
     <div id="fonte" class="note" style="display:none"></div>
 
     <div class="kpis">
@@ -141,7 +148,7 @@
         <div class="desc">Qual produto do GCP pesa mais na fatura</div>
         <div class="chart-box"><canvas id="serviceChart"></canvas></div>
       </div>
-      <div class="panel">
+      <div class="panel" id="skuPanel">
         <h2>📊 Top origens (SKU)</h2>
         <div class="desc">Os itens exatos que mais cobram</div>
         <div class="chart-box"><canvas id="skuChart"></canvas></div>
@@ -166,7 +173,7 @@
       </tr></thead><tbody></tbody></table>
     </div>
 
-    <div class="panel full">
+    <div class="panel full" id="skuFullPanel">
       <h2>🔎 Origem de cada centavo — por SKU</h2>
       <div class="desc">O item exato cobrado dentro de cada serviço. É aqui que você vê de onde vem cada R$.</div>
       <table id="skuTable"><thead><tr>
@@ -200,6 +207,25 @@
 
       if (d.fonte) { const f = document.getElementById("fonte"); f.style.display = "block"; f.textContent = "ℹ️ " + d.fonte; }
 
+      // ---- Aviso de frescor dos dados ----
+      const fb = document.getElementById("freshness");
+      const gen = parseGen(d.generated_at);
+      fb.style.display = "flex";
+      fb.className = "fresh";
+      if (!gen) {
+        fb.classList.add("fresh-stale");
+        fb.innerHTML = "🔴 ATENÇÃO: estes são dados de EXEMPLO — a coleta automática ainda não rodou.";
+      } else {
+        const horas = (Date.now() - gen.getTime()) / 3.6e6;
+        if (horas <= 12) {
+          fb.classList.add("fresh-ok");
+          fb.innerHTML = `🟢 Dados atualizados há ${fmtAge(horas)} (fonte em tempo quase real).`;
+        } else {
+          fb.classList.add("fresh-stale");
+          fb.innerHTML = `🔴 DADOS DESATUALIZADOS — última atualização há ${fmtAge(horas)}. NÃO confie nos valores até atualizar.`;
+        }
+      }
+
       // KPIs
       document.getElementById("kTotal").textContent = cf(d.total, cur);
       const nDays = Math.max(1, (new Date(d.period.end) - new Date(d.period.start)) / 86400000 + 1);
@@ -224,9 +250,12 @@
       const svc = (d.by_service || []).filter(s => s.custo_liquido > 0);
       if (svc.length) doughnut("serviceChart", svc.map(s => s.servico), svc.map(s => s.custo_liquido), cur);
 
-      // Barras horizontais SKU (top 7)
+      // Barras horizontais SKU (top 7) — esconde seções se não houver SKU (fonte Monitoring)
       const sku = (d.by_sku || []).slice(0, 7);
-      if (sku.length) hbar("skuChart", sku.map(s => shorten(s.sku, 34)), sku.map(s => s.custo_liquido), cur);
+      const hasSku = sku.length > 0;
+      document.getElementById("skuPanel").style.display = hasSku ? "" : "none";
+      document.getElementById("skuFullPanel").style.display = hasSku ? "" : "none";
+      if (hasSku) hbar("skuChart", sku.map(s => shorten(s.sku, 34)), sku.map(s => s.custo_liquido), cur);
 
       // Área custo por dia
       if (d.by_day && d.by_day.length) area("dayChart", d.by_day.map(x => x.dia), d.by_day.map(x => x.custo_liquido), cur);
@@ -253,6 +282,18 @@
         <td class="num pill ${r.custo_liquido >= maxSku * 0.5 ? 'red' : ''}">${cf(r.custo_liquido, cur)}</td>`);
     }
 
+    function parseGen(s) {
+      if (!s) return null;
+      const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+      if (!m) return null;
+      // tratamos como UTC; se não houver hora, assume meia-noite (fica "velho" rápido — proposital)
+      return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)));
+    }
+    function fmtAge(h) {
+      if (h < 1) return Math.round(h * 60) + " min";
+      if (h < 48) return Math.round(h) + "h";
+      return Math.round(h / 24) + " dias";
+    }
     function shorten(s, n) { s = s || ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
     function showEmpty(canvasId, emptyId) { document.getElementById(canvasId).style.display = "none"; document.getElementById(emptyId).style.display = "block"; }
     function fillTable(id, rows, html) {

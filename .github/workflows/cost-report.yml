@@ -1,24 +1,23 @@
-name: Relatório de Custos GCP
+name: Painel de Custos GCP
 
-# Roda sozinho todo dia às 09:00 UTC (06:00 BRT) e também pode ser disparado na mão.
+# Roda a cada 3 horas (tempo quase real via Cloud Monitoring) e sob demanda.
 on:
   schedule:
-    - cron: "0 9 * * *"
+    - cron: "0 */3 * * *"
   workflow_dispatch:
     inputs:
       dias:
         description: "Janela de análise em dias"
         required: false
-        default: "30"
+        default: "14"
 
 permissions:
-  contents: write       # para commitar o relatório de volta no repo
-  id-token: write       # para autenticar via Workload Identity Federation
+  contents: write
+  id-token: write
 
 jobs:
-  cost-report:
+  painel:
     runs-on: ubuntu-latest
-    # secrets não pode ser usado direto em if:; expomos via env (isso é permitido).
     env:
       HAS_WIF: ${{ secrets.GCP_WIF_PROVIDER != '' }}
       HAS_KEY: ${{ secrets.GCP_SA_KEY != '' }}
@@ -26,10 +25,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Autenticação no GCP.
-      # OPÇÃO A (recomendada): Workload Identity Federation — sem chave.
-      #   Configure os secrets GCP_WIF_PROVIDER e GCP_SERVICE_ACCOUNT.
-      # OPÇÃO B (mais simples): chave JSON da service account no secret GCP_SA_KEY.
       - name: Auth GCP (WIF)
         if: env.HAS_WIF == 'true'
         uses: google-github-actions/auth@v2
@@ -38,35 +33,32 @@ jobs:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Auth GCP (chave JSON)
-        if: env.HAS_WIF != 'true' && env.HAS_KEY == 'true'
+        if: env.HAS_WIF != 'true' && env.HAS_KEY != ''
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Setup gcloud + bq
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Gerar relatório (Markdown)
+      - name: Instalar dependências
+        run: pip install --quiet google-cloud-monitoring
+
+      - name: Gerar painel (Cloud Monitoring — tempo quase real)
         env:
-          BQ_BILLING_TABLE: ${{ secrets.BQ_BILLING_TABLE }}
-          DIAS: ${{ github.event.inputs.dias || '30' }}
-        run: ./scripts/gerar_relatorio.sh
+          DIAS: ${{ github.event.inputs.dias || '14' }}
+        run: python3 scripts/gerar_monitoring.py
 
-      - name: Gerar painel (JSON p/ GitHub Pages)
-        env:
-          BQ_BILLING_TABLE: ${{ secrets.BQ_BILLING_TABLE }}
-          LOGS_TABLE: ${{ secrets.LOGS_TABLE }}
-          DIAS: ${{ github.event.inputs.dias || '30' }}
-        run: python3 scripts/gerar_dashboard.py
-
-      - name: Commitar relatório e painel
+      - name: Commitar painel
         run: |
-          git config user.name  "cost-report-bot"
+          git config user.name  "cost-bot"
           git config user.email "actions@github.com"
-          git add reports/ docs/data/costs.json
+          git add docs/data/costs.json
           if git diff --cached --quiet; then
             echo "Sem mudanças."
           else
-            git commit -m "chore: atualiza custos GCP $(date -u +%F)"
+            git commit -m "chore: atualiza painel de custos $(date -u +'%F %H:%M')"
             git push
           fi

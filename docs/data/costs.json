@@ -1,16 +1,16 @@
 {
   "free_tier": {
     "mes": "2026-06",
-    "vcpu_used": 908377,
+    "vcpu_used": 908382,
     "vcpu_free": 180000,
-    "gib_used": 454189,
+    "gib_used": 454191,
     "gib_free": 360000,
-    "req_used": 2500,
+    "req_used": 2507,
     "req_free": 2000000,
     "cobranca_mes": 102.05,
     "dentro_do_free": false
   },
-  "generated_at": "2026-06-20 13:55 UTC",
+  "generated_at": "2026-06-20 16:15 UTC",
   "fonte": "Cloud Monitoring (tempo quase real). Custo é ESTIMADO a partir do tempo faturável de CPU/memória do Cloud Run.",
   "data_source": "monitoring",
   "last_data_day": "2026-06-20",
@@ -19,30 +19,24 @@
     "end": "2026-06-20"
   },
   "currency": "BRL",
-  "total": 31.12,
+  "total": 30.37,
   "by_mcp": [
     {
       "mcp": "oplab-sheets-mcp",
-      "requisicoes": 696,
-      "billable_segundos": 114026,
-      "custo_liquido": 16.58,
-      "custo_por_requisicao": 0.023828
+      "requisicoes": 690,
+      "billable_segundos": 111508,
+      "custo_liquido": 16.22,
+      "custo_por_requisicao": 0.023504
     },
     {
       "mcp": "oplab-mcp-server",
-      "requisicoes": 639,
-      "billable_segundos": 99916,
-      "custo_liquido": 14.53,
-      "custo_por_requisicao": 0.022741
+      "requisicoes": 625,
+      "billable_segundos": 97320,
+      "custo_liquido": 14.15,
+      "custo_por_requisicao": 0.022647
     }
   ],
   "by_mcp_day": [
-    {
-      "mcp": "oplab-mcp-server",
-      "dia": "2026-06-17",
-      "custo": 1.4,
-      "chamadas": 63
-    },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-09",
@@ -51,33 +45,57 @@
     },
     {
       "mcp": "oplab-mcp-server",
-      "dia": "2026-06-16",
-      "custo": 5.17,
-      "chamadas": 231
-    },
-    {
-      "mcp": "oplab-mcp-server",
-      "dia": "2026-06-13",
+      "dia": "2026-06-19",
       "custo": 0.0,
-      "chamadas": 21
+      "chamadas": 24
     },
     {
       "mcp": "oplab-mcp-server",
-      "dia": "2026-06-12",
-      "custo": 2.09,
-      "chamadas": 45
+      "dia": "2026-06-17",
+      "custo": 1.07,
+      "chamadas": 62
     },
     {
       "mcp": "oplab-mcp-server",
-      "dia": "2026-06-18",
+      "dia": "2026-06-20",
       "custo": 0.0,
       "chamadas": 17
     },
     {
       "mcp": "oplab-mcp-server",
+      "dia": "2026-06-15",
+      "custo": 0.92,
+      "chamadas": 64
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-13",
+      "custo": 0.0,
+      "chamadas": 20
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-12",
+      "custo": 2.09,
+      "chamadas": 46
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-16",
+      "custo": 4.58,
+      "chamadas": 169
+    },
+    {
+      "mcp": "oplab-mcp-server",
       "dia": "2026-06-07",
-      "custo": 3.02,
-      "chamadas": 113
+      "custo": 3.12,
+      "chamadas": 97
+    },
+    {
+      "mcp": "oplab-mcp-server",
+      "dia": "2026-06-10",
+      "custo": 0.52,
+      "chamadas": 12
     },
     {
       "mcp": "oplab-mcp-server",
@@ -87,39 +105,15 @@
     },
     {
       "mcp": "oplab-mcp-server",
-      "dia": "2026-06-19",
+      "dia": "2026-06-18",
       "custo": 0.0,
-      "chamadas": 10
-    },
-    {
-      "mcp": "oplab-mcp-server",
-      "dia": "2026-06-20",
-      "custo": 0.0,
-      "chamadas": 28
+      "chamadas": 17
     },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-08",
-      "custo": 0.59,
-      "chamadas": 12
-    },
-    {
-      "mcp": "oplab-mcp-server",
-      "dia": "2026-06-15",
-      "custo": 0.0,
-      "chamadas": 1
-    },
-    {
-      "mcp": "oplab-mcp-server",
-      "dia": "2026-06-10",
-      "custo": 0.52,
-      "chamadas": 12
-    },
-    {
-      "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-17",
-      "custo": 1.36,
-      "chamadas": 70
+      "custo": 0.11,
+      "chamadas": 11
     },
     {
       "mcp": "oplab-sheets-mcp",
@@ -129,45 +123,15 @@
     },
     {
       "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-16",
-      "custo": 4.52,
-      "chamadas": 146
-    },
-    {
-      "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-13",
-      "custo": 1.61,
-      "chamadas": 54
-    },
-    {
-      "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-12",
-      "custo": 2.16,
-      "chamadas": 56
-    },
-    {
-      "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-18",
-      "custo": 0.0,
-      "chamadas": 19
-    },
-    {
-      "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-07",
-      "custo": 3.47,
-      "chamadas": 220
-    },
-    {
-      "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-11",
-      "custo": 1.71,
-      "chamadas": 47
-    },
-    {
-      "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-19",
       "custo": 0.0,
-      "chamadas": 13
+      "chamadas": 17
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-17",
+      "custo": 1.06,
+      "chamadas": 69
     },
     {
       "mcp": "oplab-sheets-mcp",
@@ -177,33 +141,69 @@
     },
     {
       "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-08",
-      "custo": 0.7,
-      "chamadas": 21
+      "dia": "2026-06-15",
+      "custo": 1.2,
+      "chamadas": 63
     },
     {
       "mcp": "oplab-sheets-mcp",
-      "dia": "2026-06-15",
-      "custo": 0.52,
-      "chamadas": 16
+      "dia": "2026-06-13",
+      "custo": 1.61,
+      "chamadas": 53
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-12",
+      "custo": 2.16,
+      "chamadas": 57
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-16",
+      "custo": 4.14,
+      "chamadas": 100
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-07",
+      "custo": 3.69,
+      "chamadas": 216
     },
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-10",
       "custo": 0.52,
       "chamadas": 9
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-11",
+      "custo": 1.71,
+      "chamadas": 47
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-18",
+      "custo": 0.0,
+      "chamadas": 19
+    },
+    {
+      "mcp": "oplab-sheets-mcp",
+      "dia": "2026-06-08",
+      "custo": 0.11,
+      "chamadas": 15
     }
   ],
   "by_calls": [
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-20",
-      "chamadas": 28
+      "chamadas": 17
     },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-19",
-      "chamadas": 10
+      "chamadas": 24
     },
     {
       "mcp": "oplab-mcp-server",
@@ -213,27 +213,27 @@
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-17",
-      "chamadas": 63
+      "chamadas": 62
     },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-16",
-      "chamadas": 231
+      "chamadas": 169
     },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-15",
-      "chamadas": 1
+      "chamadas": 64
     },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-13",
-      "chamadas": 21
+      "chamadas": 20
     },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-12",
-      "chamadas": 45
+      "chamadas": 46
     },
     {
       "mcp": "oplab-mcp-server",
@@ -253,12 +253,12 @@
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-08",
-      "chamadas": 12
+      "chamadas": 11
     },
     {
       "mcp": "oplab-mcp-server",
       "dia": "2026-06-07",
-      "chamadas": 113
+      "chamadas": 97
     },
     {
       "mcp": "oplab-sheets-mcp",
@@ -268,7 +268,7 @@
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-19",
-      "chamadas": 13
+      "chamadas": 17
     },
     {
       "mcp": "oplab-sheets-mcp",
@@ -278,27 +278,27 @@
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-17",
-      "chamadas": 70
+      "chamadas": 69
     },
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-16",
-      "chamadas": 146
+      "chamadas": 100
     },
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-15",
-      "chamadas": 16
+      "chamadas": 63
     },
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-13",
-      "chamadas": 54
+      "chamadas": 53
     },
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-12",
-      "chamadas": 56
+      "chamadas": 57
     },
     {
       "mcp": "oplab-sheets-mcp",
@@ -318,29 +318,29 @@
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-08",
-      "chamadas": 21
+      "chamadas": 15
     },
     {
       "mcp": "oplab-sheets-mcp",
       "dia": "2026-06-07",
-      "chamadas": 220
+      "chamadas": 216
     }
   ],
   "by_service": [
     {
       "servico": "Cloud Run (estimado)",
-      "custo_liquido": 31.12
+      "custo_liquido": 30.37
     }
   ],
   "by_sku": [],
   "by_day": [
     {
       "dia": "2026-06-07",
-      "custo_liquido": 6.49
+      "custo_liquido": 6.81
     },
     {
       "dia": "2026-06-08",
-      "custo_liquido": 1.29
+      "custo_liquido": 0.23
     },
     {
       "dia": "2026-06-09",
@@ -364,15 +364,15 @@
     },
     {
       "dia": "2026-06-15",
-      "custo_liquido": 0.52
+      "custo_liquido": 2.12
     },
     {
       "dia": "2026-06-16",
-      "custo_liquido": 9.69
+      "custo_liquido": 8.71
     },
     {
       "dia": "2026-06-17",
-      "custo_liquido": 2.76
+      "custo_liquido": 2.13
     },
     {
       "dia": "2026-06-18",
@@ -380,7 +380,7 @@
     },
     {
       "dia": "2026-06-19",
-      "custo_liquido": 0.0
+      "custo_liquido": 0.01
     },
     {
       "dia": "2026-06-20",

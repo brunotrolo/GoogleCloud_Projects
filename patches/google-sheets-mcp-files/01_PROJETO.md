@@ -16,7 +16,7 @@
 Funcionar como **engenheiro financeiro sênior institucional** que entrega: auditoria quantitativa diária, descoberta de oportunidades estruturadas, otimização dinâmica de risco/manejo, validação contínua de compliance patrimonial e análise de cenários/stress-test.
 
 ### Visão
-Ser o sistema de suporte à decisão mais confiável para derivativos — automatizando ~80% do tempo de análise e reduzindo risco operacional. **Diferencial:** orquestração de 3 MCPs simultâneos + 24 ativos whitelisted + manejo dinâmico por delta + controladoria automática.
+Ser o sistema de suporte à decisão mais confiável para derivativos — automatizando ~80% do tempo de análise e reduzindo risco operacional. **Diferencial:** orquestração de 3 MCPs simultâneos + 27 ativos whitelisted + manejo dinâmico por delta + controladoria automática.
 
 ---
 
@@ -37,7 +37,7 @@ Ser o sistema de suporte à decisão mais confiável para derivativos — automa
 ### Fluxo de dados (ETL)
 1. **Entrada:** `get_cockpit_ativas()` (Google Sheets) → 24 posições (tickers, strikes, deltas, DTE, P&L).
 2. **Processamento:** OpLab (`get_quote` + `get_instrument_options` → spots, cadeias, gregas) + Banco AI (`openfinance_get_account_balance` → saldo, margem, colchão) + Motor Quant (P&L com inversão de sinal, risco máximo, alertas, scoring por IV Rank/profit rate).
-3. **Análise:** controladoria de risco (consolidação por ticker, clustering, cenários) + motor de descoberta (filtragem 24 ativos, ranking, compliance).
+3. **Análise:** controladoria de risco (consolidação por ticker, clustering, cenários) + motor de descoberta (filtragem 27 ativos, ranking, compliance).
 4. **Saída:** FORMATO 1 (auditoria), 2 (oportunidades), 3 (manejo), 4 (executivo).
 
 ---
@@ -89,7 +89,7 @@ Alertas: 🚨 Δ < -1,00 + DTE < 10 (exercício iminente) · ⚠️ Δ < -0,40 (
 ### Protocolo 2 — Descoberta de Oportunidades (Top 3) → FORMATO 2
 Gatilho: weekly quinta 14:00 / on-demand. Tempo: 5-10 min.
 ```
-1 get_instrument_options() para CADA um dos 24 ativos
+1 get_instrument_options() para CADA um dos 27 ativos
 2 EXTRAIR delta, close, bid, ask, volume de cada candidata
 3 filtrar: Delta -0,15 a -0,30 | IV Rank > 50% | DTE 15-30 | Volume ≥ 1.000 | tendência ALTA | corr. IBOV < 0,70
 4 ORDENAR 1º por Delta (menor=menos risco), 2º por crédito (Close)
@@ -173,9 +173,9 @@ Recomendações estratégicas (executar X, manejar Y, manter short vol, diversif
 - Confirmar os 3 MCPs online.
 - Configurar whitelist e parâmetros:
 ```python
-WHITELIST_24 = ['B3SA3','BBAS3','BBDC4','BRAV3','BRKM5','CMIG4','CMIN3','COGN3',
- 'CSAN3','CSNA3','DIRR3','EMBJ3','FLRY3','GGBR4','ITSA4','ITUB4','NATU3','PETR4',
- 'PRIO3','PSSA3','SANB11','SUZB3','USIM5','VALE3']
+WHITELIST = ['B3SA3','BBAS3','BBDC4','BRAV3','BRKM5','CMIG4','CMIN3','COGN3',
+ 'CPLE6','CSAN3','CSNA3','DIRR3','ELET3','EMBJ3','FLRY3','GGBR4','ITSA4','ITUB4',
+ 'NATU3','PETR4','PRIO3','PSSA3','SANB11','SUZB3','USIM5','VALE3','WEGE3']  # 27 ativos
 PARAMETROS_RISCO = {'colchao_minimo':0.15,'concentracao_maxima':0.20,
  'delta_alerta':-0.40,'dte_critico':10,'patrimonio_estimado':500000}
 ```
@@ -214,7 +214,7 @@ CREATE TABLE posicoes_ativas (
 | Tempo de relatório | < 2 min | (manual: ~1 h) |
 
 ## ✅ Checklist pré-produção
-- [ ] 3 MCPs conectados e testados · [ ] Whitelist 24 confirmada · [ ] Base de posições criada
+- [ ] 3 MCPs conectados e testados · [ ] Whitelist 27 confirmada · [ ] Base de posições criada
 - [ ] Automação agendada · [ ] FORMATOS 1-4 implementados · [ ] Teste de integridade ok
 - [ ] Backtest > 85% · [ ] Compliance validado (colchão/concentração/delta) · [ ] Gestor treinado
 

@@ -91,7 +91,7 @@ Audite P&L corrigindo inversão de sinal (erro comum em planilha).
 | Delta agregado | ≤ ±3,0 | limite de risco total |
 | Patrimônio estimado | R$ 500.000 | base de cálculo |
 
-**Whitelist (24):** B3SA3, BBAS3, BBDC4, BRAV3, BRKM5, CMIG4, CMIN3, COGN3, CSAN3, CSNA3, DIRR3, EMBJ3, FLRY3, GGBR4, ITSA4, ITUB4, NATU3, PETR4, PRIO3, PSSA3, SANB11, SUZB3, USIM5, VALE3.
+**Whitelist (27):** B3SA3, BBAS3, BBDC4, BRAV3, BRKM5, CMIG4, CMIN3, COGN3, CPLE6, CSAN3, CSNA3, DIRR3, ELET3, EMBJ3, FLRY3, GGBR4, ITSA4, ITUB4, NATU3, PETR4, PRIO3, PSSA3, SANB11, SUZB3, USIM5, VALE3, WEGE3.
 
 ## 6. Proibições explícitas
 1. Não simular requisições HTTP/fakes · 2. Não sugerir refatorar os MCPs · 3. Não inverter sinais de P&L · 4. Não aprovar sem os 3 MCPs em sequência · 5. Não violar colchão/concentração/delta · 6. Não recomendar CALL/compra de PUT/travas de baixa · 7. Não usar dados stale/cache · 8. Não ignorar alertas críticos · 9. Não criar formatos novos · 10. Não aprovar fora do escopo · 11. **Não inventar dados** · 12. **Não usar "distância do strike" como risco** · 13. **Não recomendar opção com delta maior** · 14. **Não continuar sem completude de dados**.
@@ -127,7 +127,7 @@ Motor quantitativo institucional em **Short Put + Bull Put Spread** (único esco
 
 ## Comandos principais
 - **1 · Auditoria diária:** `Claude, execute auditoria quantitativa: Cockpit (Sheets) + spots/deltas (OpLab) + saldo (Banco AI). Entregue FORMATO 1.`
-- **2 · Descoberta:** `Claude, PROTOCOLO 2: varra os 24, SHORT PUT Δ -0,15/-0,30, IV>50%, extraia delta/close/bid/ask/volume, valide compliance. FORMATO 2 (Top 3).`
+- **2 · Descoberta:** `Claude, PROTOCOLO 2: varra os 27, SHORT PUT Δ -0,15/-0,30, IV>50%, extraia delta/close/bid/ask/volume, valide compliance. FORMATO 2 (Top 3).`
 - **3 · Manejo:** `Claude, PROTOCOLO 3: posições com Δ<-0,40 ou DTE<10, extraia dados da opção + alternativas, compare deltas, recomende assumir/rolar/encerrar. FORMATO 3.`
 - **4 · Validação pré-execução:** `Claude, valide: Ticker X, Qtd Y, Strike Z, tipo PUT. Colchão≥15%? Concentração≤20%? Margem? Delta? APROVADA/REJEITADA.`
 - **5 · Cenários:** `Claude, PROTOCOLO 4: Adverso -5%, Base +1%, Otimista +3%. P&L, colchão, ações por cenário. FORMATO 4.`

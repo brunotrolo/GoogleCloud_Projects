@@ -34,6 +34,24 @@ function getSheets(): Promise<any> {
   return sheetsClientPromise;
 }
 
+// ── Cache de leitura por range (TTL curto) ─────────────────────────────────────
+// Numa mesma análise o Claude chama várias tools que leem o MESMO range
+// (COCKPIT!A10:Z500). Sem cache, cada tool bate na API do Google Sheets — mais
+// latência e consumo de cota. Um cache de ~45s serve todas as leituras seguidas
+// da mesma sessão de análise sem envelhecer o dado a ponto de atrapalhar.
+const CACHE_TTL_MS = 45_000;
+const rangeCache = new Map<string, { at: number; rows: any[][] }>();
+async function fetchRange(range: string): Promise<any[][]> {
+  const now = Date.now();
+  const hit = rangeCache.get(range);
+  if (hit && now - hit.at < CACHE_TTL_MS) return hit.rows;
+  const sheets = await getSheets();
+  const response = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range });
+  const rows: any[][] = response.data.values || [];
+  rangeCache.set(range, { at: now, rows });
+  return rows;
+}
+
 // Cria um servidor NOVO por requisição (igual ao OpLab) — robusto sob concorrência.
 function buildServer(): Server {
   const srv = new Server(
@@ -289,9 +307,7 @@ function register(srv: Server) {
     else if (name === 'get_correl_ibov') range = 'RANKING_CORREL_IBOV!A1:Z300';
     else throw new Error(`Ferramenta desconhecida: ${name}`);
 
-    const sheets = await getSheets();
-    const response = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range });
-    const rows: any[][] = response.data.values || [];
+    const rows: any[][] = await fetchRange(range);
     if (rows.length === 0) return { content: [{ type: 'text', text: 'Nenhum dado encontrado.' }] };
 
     const headers = rows[0];
@@ -744,7 +760,15 @@ function register(srv: Server) {
     }
     return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
   } catch (error: any) {
-    return { content: [{ type: 'text', text: `Erro: ${error.message}` }], isError: true };
+    // Erros acionáveis para as falhas mais comuns da API do Google Sheets.
+    const code = Number(error?.code ?? error?.response?.status);
+    const msg = String(error?.message ?? error);
+    let hint = '';
+    if (code === 429 || /quota|rate limit/i.test(msg)) hint = ' [cota da API do Google Sheets excedida — aguarde ~1 min e tente de novo; o cache de 45s reduz a chance disso]';
+    else if (code === 403) hint = ' [permissão: a conta de serviço precisa de acesso de leitura à planilha, ou SPREADSHEET_ID incorreto]';
+    else if (code === 404) hint = ' [planilha/aba não encontrada — confira SPREADSHEET_ID e o nome da aba/range]';
+    else if (/timeout|ETIMEDOUT|ECONNRESET/i.test(msg)) hint = ' [timeout na API do Google — tente novamente]';
+    return { content: [{ type: 'text', text: `Erro ao ler a planilha: ${msg}${hint}` }], isError: true };
   }
   });
 }

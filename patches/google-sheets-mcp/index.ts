@@ -102,7 +102,7 @@ function register(srv: Server) {
     tools: [
       {
         name: 'get_cockpit_ativas',
-        description: 'Retorna posições ATIVAS da aba COCKPIT cortando as 9 primeiras linhas. Cada linha inclui todos os campos da aba — entre eles STATUS e TRADE_MONTH.',
+        description: 'CARTEIRA / PORTFÓLIO / POSIÇÕES ABERTAS de opções. Lista TODAS as operações ATIVAS (puts/calls vendidas e compradas, travas, bull put spreads, short puts) com ticker, option_ticker, strike, quantidade, prêmio de entrada, spot atual, moneyness (ITM/ATM/OTM), P&L e vencimento. Fonte PRIMÁRIA e ÚNICA das posições em aberto do operador (aba COCKPIT). Use para pedidos como "minhas posições", "operações ativas", "minha carteira", "meu portfólio", "o que tenho aberto", "posições em aberto", "cockpit".',
         inputSchema: { type: 'object', properties: {} }
       },
       {
@@ -123,7 +123,7 @@ function register(srv: Server) {
       },
       {
         name: 'get_cockpit_por_ativo',
-        description: 'Retorna todas as posições da aba COCKPIT (ativas + encerradas + exercidas) com TICKER igual ao parâmetro fornecido. Útil para ver histórico completo de um ativo.',
+        description: 'POSIÇÕES/CARTEIRA de UM ativo específico. Retorna todas as operações (ativas + encerradas + exercidas) com TICKER igual ao parâmetro. Use para "minhas posições em VALE3", "o que tenho de PETR4", histórico completo de um papel.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -157,7 +157,7 @@ function register(srv: Server) {
       },
       {
         name: 'get_alertas_posicoes',
-        description: 'Avalia as posições ATIVAS de venda da aba COCKPIT e retorna alertas classificados por nível de risco (CRITICO, ALERTA, AVISO). Critérios consideram DTE (dias até o vencimento, calculado a partir de EXPIRY vs. hoje), MONEYNESS (ITM/ATM) e relação PL_VALUE / MAX_GAIN. Cada alerta inclui ação sugerida.',
+        description: 'ALERTAS DE RISCO da CARTEIRA / PORTFÓLIO. Avalia as posições ATIVAS de venda (aba COCKPIT) e retorna alertas por nível (CRITICO, ALERTA, AVISO) considerando DTE (dias até o vencimento), MONEYNESS (ITM/ATM) e PL_VALUE / MAX_GAIN, com ação sugerida. Use para "posições em risco", "o que está pressionado", "alertas da carteira", "o que preciso manejar".',
         inputSchema: { type: 'object', properties: {} }
       },
       {

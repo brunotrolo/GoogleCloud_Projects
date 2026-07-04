@@ -15,9 +15,10 @@ WORK="$(mktemp -d)"; cd "$WORK"
 git clone --depth 1 https://github.com/brunotrolo/oplab_mcp.git
 cd oplab_mcp
 
-cp "$SRC/manejo_engine.ts" src/utils/manejo_engine.ts
-cp "$SRC/iv_calculator.ts" src/utils/iv_calculator.ts
-cp "$SRC/index.ts"         src/index.ts
+cp "$SRC/manejo_engine.ts"    src/utils/manejo_engine.ts
+cp "$SRC/iv_calculator.ts"    src/utils/iv_calculator.ts
+cp "$SRC/estrutura_engine.ts" src/utils/estrutura_engine.ts
+cp "$SRC/index.ts"            src/index.ts
 
 if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
   echo "Nada a mudar."

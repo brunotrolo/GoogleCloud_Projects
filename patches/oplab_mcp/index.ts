@@ -513,6 +513,7 @@ const TOOL_REGISTRY: ToolDef[] = [
       dte_alvo:       { type: "integer", description: "DTE da entrada simulada (padrão: 25)." },
       delta_alvo:     { type: "number",  description: "Delta alvo da PUT vendida (padrão: -0.25)." },
       use_spread:     { type: "boolean", description: "Simular trava Bull Put Spread (perda limitada) em vez de PUT seca. Padrão: true." },
+      incluir_operacoes: { type: "boolean", description: "Se true, adiciona ao resultado a lista 'operacoes' com CADA trade individual (data de entrada, strike, prêmio, delta, DTE, vencimento, spot no vencimento, resultado, P&L e flags point-in-time). Para auditoria/reconstrução independente. Padrão: false." },
     },
     required: [],
     handler: (client, a) => getBacktestEstrutural(client, a),

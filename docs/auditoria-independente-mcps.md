@@ -24,7 +24,9 @@ nunca reimplementando a lógica interna da própria ferramenta.
 | 4 | " | BBDC4 | 61,3 | 12,8/20,9·100 = 61,24 | ✅ |
 | 4 | " | VALE3 | 61,4 | 19,6/32,0·100 = 61,25 | ✅ |
 | 4 | " | EQTL3 | 51,6 | 13,4/26,0·100 = 51,54 | ✅ |
-| 5 | OpLab `get_backtest_*` | 3 ops + anti-look-ahead | — | (não re-executado nesta passada; auditoria de look-ahead anterior vale) | ⏸️ pendente |
+| 5 | OpLab `get_backtest_estrutural` | **anti-look-ahead (todas as ops)** | — | auditoria de código: decisão usa só `candles.slice(0,di+1)`, `ivRank/m9m21` de janela p/ trás | ✅ **sem look-ahead** |
+| 5 | " | fórmula de payoff do `simulate` | trava WIN=+75 / perda máx=−225 | `scripts/backtest_oracle.py` reproduz idêntico | ✅ |
+| 5 | " | reconstrução numérica de 3 ops | — | harness pronto (`backtest_oracle.py`) + modo `incluir_operacoes` | ⏸️ aguarda reconexão do OpLab |
 | 6 | Cockpit `get_status_operacoes` | 12 conferências (carteira real) | ver tabela abaixo | fórmula fechada das pernas cruas | ✅ 12/12 |
 | — | OpLab `get_historical_data` | candles ITUB4 | 76 candles | 3 pares de candles **duplicados** (timestamps consecutivos idênticos) | ⚠️ qualidade de dado |
 
@@ -78,7 +80,21 @@ Não é bug do nosso código (passthrough correto); é da API OpLab. Opções de
   pivô independente em `scripts/pivots.py`.
 - **#1 Quote:** cross-check `get_quote` × `get_stock` (mesmo provedor OpLab — independência de
   2ª fonte externa NÃO alcançada; declarado). O achado é a inconsistência do `spot_price` da chain.
-- **#5 Backtest:** reconstrução de 3 ops + anti-look-ahead — não re-executado nesta passada.
+- **#5 Backtest:** anti-look-ahead **verificado por auditoria de código** (mais forte que 3 ops —
+  vale para TODAS as operações). Motor `backtest_estrutural_engine.ts` + `backtest_engine.ts`:
+  - Estrutura: `classificarEstrutura(candles.slice(0, di+1))` — só candles até a entrada.
+  - IV Rank (`buildIndicators`): `ivRank[j]` usa janela `max(21, j−251)…j` (para trás, termina em j).
+  - M9/M21 e vol21: SMAs/vol de janela para trás terminando em `j`.
+  - Seleção de strike: `getChain(dates[di])` (cadeia na data de entrada).
+  - Único dado futuro: `candles[expiryIdx].close` no `simulate`, usado só para apurar o resultado.
+  `scripts/backtest_oracle.py` reconstrói o payoff (idêntico ao `simulate`) e traz guarda que
+  FALHA se algum candle da decisão de entrada tiver data > D0. Reconstrução numérica de 3 ops
+  reais aguarda reconexão do OpLab (rodar `get_backtest_estrutural` com `incluir_operacoes=true`).
+
+## Nota — conector OpLab caiu de novo durante o Teste #5
+A verificação anti-look-ahead (o ponto crítico) foi feita **offline por auditoria de código** e o
+harness independente está pronto. A reconstrução numérica das 3 operações precisa do conector OpLab
+reautorizado (chamadas ao vivo de `get_backtest_estrutural` + `get_historical_data`).
 
 ## Pendências
 - Decidir a correção do `get_options_bs` (A ou B).

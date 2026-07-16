@@ -25,8 +25,10 @@ nunca reimplementando a lógica interna da própria ferramenta.
 | 4 | " | VALE3 | 61,4 | 19,6/32,0·100 = 61,25 | ✅ |
 | 4 | " | EQTL3 | 51,6 | 13,4/26,0·100 = 51,54 | ✅ |
 | 5 | OpLab `get_backtest_estrutural` | **anti-look-ahead (todas as ops)** | — | auditoria de código: decisão usa só `candles.slice(0,di+1)`, `ivRank/m9m21` de janela p/ trás | ✅ **sem look-ahead** |
-| 5 | " | fórmula de payoff do `simulate` | trava WIN=+75 / perda máx=−225 | `scripts/backtest_oracle.py` reproduz idêntico | ✅ |
-| 5 | " | reconstrução numérica de 3 ops | — | harness pronto (`backtest_oracle.py`) + modo `incluir_operacoes` | ⏸️ aguarda reconexão do OpLab |
+| 5 | " | op início 2024-07-17 (trava) | LOSS −190,01 | `backtest_oracle.py`: LOSS −190,0 | ✅ |
+| 5 | " | op meio 2025-07-28 (PUT nua) | WIN +43 | WIN +43,0 | ✅ |
+| 5 | " | op recente 2026-05-18 (trava) | WIN +34 | WIN +34,0 | ✅ |
+| 5 | " | op perda máxima 2026-04-20 (trava) | LOSS −279 | LOSS −279,0 | ✅ |
 | 6 | Cockpit `get_status_operacoes` | 12 conferências (carteira real) | ver tabela abaixo | fórmula fechada das pernas cruas | ✅ 12/12 |
 | — | OpLab `get_historical_data` | candles ITUB4 | 76 candles | 3 pares de candles **duplicados** (timestamps consecutivos idênticos) | ⚠️ qualidade de dado |
 
@@ -88,14 +90,27 @@ Não é bug do nosso código (passthrough correto); é da API OpLab. Opções de
   - Seleção de strike: `getChain(dates[di])` (cadeia na data de entrada).
   - Único dado futuro: `candles[expiryIdx].close` no `simulate`, usado só para apurar o resultado.
   `scripts/backtest_oracle.py` reconstrói o payoff (idêntico ao `simulate`) e traz guarda que
-  FALHA se algum candle da decisão de entrada tiver data > D0. Reconstrução numérica de 3 ops
-  reais aguarda reconexão do OpLab (rodar `get_backtest_estrutural` com `incluir_operacoes=true`).
+  FALHA se algum candle da decisão de entrada tiver data > D0.
+- **Reconstrução numérica CONCLUÍDA:** rodado `get_backtest_estrutural(ITUB4, incluir_operacoes=true)`
+  ao vivo (22 ops, 2024-07 a 2026-05). Reconstruídas 4 ops (início/meio/recente + perda máxima) pelo
+  `backtest_oracle.py` — **resultado e P&L batem ao centavo nas 4** (diferença de 0,01 por
+  arredondamento do crédito líquido). Os deltas reportados pelo backtest ficam todos em −0,23…−0,27
+  (colados no alvo −0,25), sinal de que a seleção de strike opera como especificado.
 
-## Nota — conector OpLab caiu de novo durante o Teste #5
-A verificação anti-look-ahead (o ponto crítico) foi feita **offline por auditoria de código** e o
-harness independente está pronto. A reconstrução numérica das 3 operações precisa do conector OpLab
-reautorizado (chamadas ao vivo de `get_backtest_estrutural` + `get_historical_data`).
+## Consistência com o veredito estrutural
+No ITUB4 sozinho (22 ops), os filtros **pioram** o win rate: baseline 36,4% → `apenas_alta_estrutural`
+11,1% → `alta_estrutural_e_iv` 14,3%. Mesma direção do achado da whitelist inteira (baseline 57,6%
+→ full stack 44–52%): **empilhar filtros estruturais não gera edge.** O 36,4% do ITUB4 é de amostra
+pequena (1 ativo) e não se compara ao baseline de portfólio de 57,6% (556 ops, 27 ativos) —
+o que vale é a comparação RELATIVA entre coortes, consistente e negativa.
 
 ## Pendências
-- Decidir a correção do `get_options_bs` (A ou B).
-- Executar #5 (backtest) com reconstrução manual de 3 operações quando houver janela.
+Nenhuma. Todos os 6 testes concluídos.
+- `get_options_bs`: corrigido (opção B — BS local), deployado (rev. oplab-mcp-server-00040).
+- Teste #5: anti-look-ahead verificado + 4 operações reconstruídas ao vivo (todas batem).
+
+## Resumo executivo
+**1 bug de código** encontrado e corrigido (`get_options_bs` ignorava spotprice/vol → BS local).
+**2 problemas de dado a montante** (não-bug, ficam como alerta): spot da chain stale/inconsistente;
+candles duplicados no `get_historical_data`. **Todas as demais conferências bateram** — incluindo a
+integridade anti-look-ahead do backtest, que embasa as decisões de portfólio desta conta.

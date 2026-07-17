@@ -93,7 +93,23 @@ async function enviarMensagem(texto) {
   if (!sock || connectionStatus !== 'conectado') {
     throw new Error(`WhatsApp não está conectado (status atual: ${connectionStatus}). Verifique a sessão na VM.`);
   }
-  await sock.sendMessage(WHATSAPP_DESTINO, { text: texto });
+  const numero = WHATSAPP_DESTINO.replace(/@.*/, '').replace(/\D/g, '');
+  // Resolve o JID canônico via onWhatsApp — ESSENCIAL no Brasil: o "9º dígito" faz
+  // o número digitado (5511976765644) divergir do JID que o WhatsApp reconhece (às
+  // vezes 551176765644). Sem isso, o envio "tem sucesso" mas NÃO é entregue.
+  let jid = `${numero}@s.whatsapp.net`;
+  try {
+    const [info] = await sock.onWhatsApp(numero);
+    if (info?.exists && info.jid) {
+      jid = info.jid;
+    } else {
+      console.log(`AVISO: onWhatsApp não confirmou ${numero} — tentando JID cru ${jid}.`);
+    }
+  } catch (e) {
+    console.log(`AVISO: onWhatsApp falhou (${e.message}) — tentando JID cru ${jid}.`);
+  }
+  console.log(`Enviando para JID: ${jid} (número informado: ${numero})`);
+  await sock.sendMessage(jid, { text: texto });
 }
 
 // ── MCP — mesmo padrão stateless usado no OpLab/Cockpit: server+transport novos

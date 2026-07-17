@@ -226,3 +226,33 @@ Acompanhe esse número. Se ele disparar, um dos 3 vazamentos regrediu.
 | "tool not found" / "invalid request" | Conector velho/duplicado no claude.ai | Recriar conector com `/mcp` + conversa nova |
 
 **Os MCPs continuam funcionando exatamente igual — só pararam de sangrar e ficaram estáveis.**
+
+---
+
+## 8. A EXCEÇÃO documentada — quando o Cloud Run NÃO serve (caso WhatsApp/Baileys)
+
+As 6 regras de ouro valem para MCPs **stateless request/response**. Existe uma classe de MCP
+que **não cabe nesse molde**: os que precisam manter uma **conexão persistente e sempre viva**
+(ex.: uma sessão de WhatsApp Web via Baileys, que é um WebSocket 24/7).
+
+**Por que o Cloud Run é incompatível aqui** (o oposto das regras 1 e 2):
+- `--cpu-throttling` congela a CPU entre requisições → a sessão morre por falta de heartbeat.
+- `--min-instances=0` escala a zero → a sessão cai a cada ociosidade e teria que re-parear.
+- "CPU sempre alocada" resolveria, mas custa **igual a uma VM ligada 24/7** — sem vantagem.
+
+**O padrão correto para esse caso:** Compute Engine `e2-micro` **no Always Free tier**
+(us-west1/us-east1/us-central1) — VM sempre ligada, mas **~R$0/mês** porque cabe na cota
+gratuita permanente. O MCP continua HTTP/stateless por fora (Express), mas a sessão persistente
+vive no mesmo processo. HTTPS sem domínio via **Caddy + `<IP>.sslip.io`**; IP estático (grátis
+enquanto anexado). Caso real completo, com deploy e troubleshooting:
+**`docs/whatsapp-mcp-arquitetura.md`** + `scripts/aplicar_whatsapp_mcp.sh`.
+
+**Regra de decisão:** precisa manter conexão viva o tempo todo (WebSocket/sessão)? → **VM e2-micro
+free tier**. Senão (é request/response)? → **Cloud Run com as 6 regras**. Na dúvida, Cloud Run.
+
+### Os três MCPs do ecossistema (referência rápida)
+| MCP | Serviço | Padrão | Custo |
+|---|---|---|---|
+| OpLab | Cloud Run | stateless (6 regras) | ~R$0 |
+| Cockpit (Google Sheets) | Cloud Run | stateless (6 regras) | ~R$0 |
+| WhatsApp (Baileys) | Compute Engine e2-micro | sessão persistente (exceção) | ~R$0 (free tier) |

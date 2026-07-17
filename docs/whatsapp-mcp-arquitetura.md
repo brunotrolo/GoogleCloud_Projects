@@ -74,10 +74,21 @@ Conectores → Adicionar conector personalizado → **URL** = `https://<IP>.ssli
 (nome ASCII puro, ex. `WhatsApp`; sem OAuth). A chave está em
 `/etc/systemd/system/whatsapp-mcp.env` na VM.
 
-### Endpoints
+### Ferramentas (MCP)
+- `enviar_mensagem_whatsapp(texto)` — envia e **confirma a entrega** (espera o recibo do
+  WhatsApp por até 7s). Retorna `{ entregue, status, id }`. `entregue=false` ⇒ chegou ao
+  servidor mas não ao aparelho (destino offline) → o orquestrador reenvia/loga.
+- `verificar_status_envio(id)` — reconfere entrega/leitura de um envio anterior.
+- `verificar_status_conexao()` — observabilidade: canal online? desde quando? última entrega OK?
+  Use antes de um alerta crítico.
+
+Status de mensagem: `pendente → enviado_ao_servidor → entregue → lido` (via evento Baileys
+`messages.update`). O ack de **entrega** não depende de recibos de leitura; o `lido` é best-effort.
+
+### Endpoints HTTP
 - `POST /mcp/:key` — MCP autenticado pela chave no path (usado pelo claude.ai).
 - `POST /mcp` — MCP autenticado pelo header `x-api-key` (curl/testes).
-- `GET /health` — público, sem segredo: `{ "status": "ok", "whatsapp": "<estado>" }`.
+- `GET /health` — público, sem segredo: `{ status, whatsapp, online, conectado_desde, uptime_processo_s, ultima_entrega_confirmada, ... }` (serve de uptime check externo).
 
 ---
 

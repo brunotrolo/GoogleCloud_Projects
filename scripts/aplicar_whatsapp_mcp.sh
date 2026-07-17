@@ -63,9 +63,17 @@ HOSTNAME="${STATIC_IP}.sslip.io"
 echo "   IP estático: $STATIC_IP  →  https://$HOSTNAME"
 
 echo "==> 5/6 Chave de API do MCP e número de destino..."
-if [ -z "${MCP_API_KEY:-}" ]; then MCP_API_KEY="$(openssl rand -hex 32)"; fi
-read -rp "   Seu número de WhatsApp, DDI+DDD+número, só dígitos (ex: 5511999999999): " WHATSAPP_NUMBER
-WHATSAPP_DESTINO="${WHATSAPP_NUMBER}@s.whatsapp.net"
+# Se a VM já existe, NÃO gera chave nova nem pergunta o número — o startup-script
+# preserva o /etc/systemd/system/whatsapp-mcp.env que já está lá (ver abaixo).
+VM_JA_EXISTE="$(gcloud compute instances describe "$VM_NAME" --project="$PROJECT_ID" --zone="$ZONE" --format='get(name)' 2>/dev/null || true)"
+if [ -n "$VM_JA_EXISTE" ]; then
+  echo "   VM já existe — preservando a X-API-Key e o número atuais (não pergunta de novo)."
+  MCP_API_KEY=""; WHATSAPP_DESTINO=""   # vazios: o startup-script não sobrescreve o env existente
+else
+  if [ -z "${MCP_API_KEY:-}" ]; then MCP_API_KEY="$(openssl rand -hex 32)"; fi
+  read -rp "   Seu número de WhatsApp, DDI+DDD+número, só dígitos (ex: 5511999999999): " WHATSAPP_NUMBER
+  WHATSAPP_DESTINO="${WHATSAPP_NUMBER}@s.whatsapp.net"
+fi
 
 echo "==> 6/6 Criando a VM e2-micro (Always Free tier) em $ZONE..."
 cat > "$WORK/startup-script.sh" <<STARTUP
@@ -98,12 +106,16 @@ npm install --omit=dev --silent
 mkdir -p /opt/whatsapp-mcp/auth_info_baileys
 chown -R whatsapp-mcp:whatsapp-mcp /opt/whatsapp-mcp
 
-cat > /etc/systemd/system/whatsapp-mcp.env <<ENVFILE
+# Só escreve o env na PRIMEIRA vez (chave/número presentes e arquivo ainda ausente).
+# Em re-deploys de VM existente, MCP_API_KEY vem vazio → preserva o env atual.
+if [ ! -f /etc/systemd/system/whatsapp-mcp.env ] && [ -n "$MCP_API_KEY" ]; then
+  cat > /etc/systemd/system/whatsapp-mcp.env <<ENVFILE
 MCP_API_KEY=$MCP_API_KEY
 PORT=8080
 WHATSAPP_DESTINO=$WHATSAPP_DESTINO
 ENVFILE
-chmod 600 /etc/systemd/system/whatsapp-mcp.env
+  chmod 600 /etc/systemd/system/whatsapp-mcp.env
+fi
 
 cp /opt/whatsapp-mcp/whatsapp-mcp.service /etc/systemd/system/whatsapp-mcp.service
 systemctl daemon-reload
@@ -137,7 +149,11 @@ echo "✅ Provisionamento disparado. A VM leva ~3-5 min instalando tudo na prime
 echo ""
 echo "═══ GUARDE ISSO — não é reexibido automaticamente ═══"
 echo "  URL do MCP:  https://$HOSTNAME/mcp"
-echo "  X-API-Key:   $MCP_API_KEY"
+if [ -n "$MCP_API_KEY" ]; then
+  echo "  X-API-Key:   $MCP_API_KEY"
+else
+  echo "  X-API-Key:   (preservada — a mesma da primeira instalação)"
+fi
 echo "═══════════════════════════════════════════════════"
 echo ""
 echo "PRÓXIMO PASSO (manual, uma única vez) — parear o WhatsApp via QR code:"

@@ -83,7 +83,16 @@ offline) → o orquestrador reenvia/loga. Status: `pendente → enviado_ao_servi
 
 **Recomendadas (sempre ligadas):** `enviar_mensagem_whatsapp`, `enviar_imagem_whatsapp`,
 `enviar_documento_whatsapp`, `ler_mensagens_recebidas` (two-way), `verificar_status_envio`,
-`verificar_status_conexao`.
+`verificar_status_conexao`, `guia_de_uso` (guia para a própria LLM), e
+`enviar_alerta_falado` (TTS → nota de voz; aparece só com `GOOGLE_TTS_API_KEY`).
+
+**Alerta falado:** `enviar_alerta_falado(texto)` gera a fala com Google Cloud TTS (Neural pt-BR),
+transcodifica para opus (ffmpeg) e envia como nota de voz — o operador ouve o alerta sem abrir o
+app. Requer uma API key restrita ao TTS na env `GOOGLE_TTS_API_KEY` (setup em
+`patches/whatsapp_mcp/docs/FERRAMENTAS.md`). Free tier ~1M chars/mês → ~R$0.
+
+**Mídia:** imagem/documento/áudio aceitam `url` ou `base64`, com timeouts (download 20s, envio 45s)
+e limite de 16MB — mídia problemática retorna erro claro em vez de pendurar a requisição.
 
 **Extras (desligadas por padrão — `HABILITAR_FERRAMENTAS_EXTRAS=true`):** `enviar_audio_whatsapp`,
 `enviar_video_whatsapp`, `enviar_sticker_whatsapp`, `responder_mensagem_whatsapp` (reply),

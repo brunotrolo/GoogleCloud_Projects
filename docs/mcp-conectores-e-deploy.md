@@ -1,6 +1,7 @@
 # MCPs — Conectores no claude.ai e Pipeline de Deploy
 
-Referência operacional dos dois MCPs do projeto de derivativos B3.
+Referência operacional dos **três** MCPs do projeto de derivativos B3 (OpLab, Cockpit, WhatsApp).
+Visão geral do sistema em [ARQUITETURA-GERAL.md](ARQUITETURA-GERAL.md).
 
 ## ⚠️ Regra de ouro: nome de conector = ASCII puro
 
@@ -25,32 +26,46 @@ servidores é **idêntico** (mesmo `protocolVersion`, `capabilities`, schemas v�
 — só o nome do conector mudava o comportamento. Trocar `Operações` → `Cockpit`
 resolveu na hora.
 
-## Os dois servidores (Cloud Run)
+## Os três servidores
 
-| MCP | Serviço Cloud Run | Projeto | Depende de |
-|-----|-------------------|---------|-----------|
-| OpLab (análise/manejo) | `oplab-mcp-server` | `oplab-mcp-server` | API OpLab (token estático) |
-| Cockpit (planilha) | `oplab-sheets-mcp` | `oplab-sheets-mcp-project` | Google Sheets API (OAuth service account) |
+| MCP | Serviço | Projeto | Auth do conector | Depende de |
+|-----|---------|---------|------------------|-----------|
+| OpLab (análise/manejo) | Cloud Run `oplab-mcp-server` | `oplab-mcp-server` | URL `/mcp` (segredo interno) | API OpLab (token estático) |
+| Cockpit (planilha) | Cloud Run `oplab-sheets-mcp` | `oplab-sheets-mcp-project` | URL `/mcp` (segredo interno) | Google Sheets API (service account) |
+| WhatsApp (alertas) | Compute Engine VM `whatsapp-mcp-vm` | `whatsapp-mcp-server-502704` | **URL `/mcp/<chave>`** (chave no path) | WhatsApp Web (Baileys, sessão por QR) |
 
 URLs `/mcp`:
 - OpLab: `https://oplab-mcp-server-544531071750.us-east1.run.app/mcp`
 - Cockpit: `https://oplab-sheets-mcp-6763522987.us-east1.run.app/mcp`
+- WhatsApp: `https://34.139.120.158.sslip.io/mcp/<MCP_API_KEY>`
+
+> **Por que o WhatsApp usa a chave no path?** O conector padrão do claude.ai (fora do beta de
+> "request headers") só guarda a URL — sem header customizado. Então a `MCP_API_KEY` viaja
+> embutida no caminho (`/mcp/<chave>`). Os MCPs do Cloud Run não expõem essa auth porque o
+> segredo deles (token OpLab / service account) é interno ao servidor, não enviado pelo cliente.
+> O WhatsApp tem efeito colateral real (manda mensagem), por isso exige a chave.
 
 ## Pipeline de deploy
 
 O código-fonte dos MCPs vive em repositórios separados
-(`brunotrolo/oplab_mcp`, `brunotrolo/google-sheets-mcp`). Editamos cópias em
-`patches/` e publicamos via scripts no Cloud Shell:
+(`brunotrolo/oplab_mcp`, `brunotrolo/google-sheets-mcp`, `brunotrolo/WhatsApp_MCP`).
+Editamos cópias em `patches/` e publicamos via scripts no Cloud Shell:
 
 ```bash
 cd ~/GoogleCloud_Projects && git pull
-./scripts/aplicar_manejo_engine.sh      # OpLab (motor de manejo)
-./scripts/aplicar_sheets_antiflaky.sh   # Cockpit (Google Sheets)
+./scripts/aplicar_oplab_completo.sh     # OpLab (Cloud Run)
+./scripts/aplicar_sheets_antiflaky.sh   # Cockpit (Cloud Run)
+./scripts/aplicar_whatsapp_mcp.sh       # WhatsApp (Compute Engine VM)
 ```
 
 Cada script clona o repo do MCP, copia os arquivos de `patches/`, commita, dá push
-e roda `gcloud run deploy`. Os erros "Regional Access Boundary 404" no output do
-`gcloud` são ruído/telemetria — o deploy conclui ("Done.").
+e faz o deploy — `gcloud run deploy` (Cloud Run) ou provisiona/atualiza a VM (WhatsApp).
+Os erros "Regional Access Boundary 404 / Gaia id not found" no output do `gcloud` são
+ruído/telemetria — o deploy conclui ("Done.").
+
+> **WhatsApp — 1ª vez:** exige parear a sessão por QR code (SSH na VM + `journalctl`) e conectar
+> com um número **secundário** como remetente. Todo o passo a passo e o troubleshooting
+> (405, git ownership, 9º dígito, OAuth) estão em [whatsapp-mcp-arquitetura.md](whatsapp-mcp-arquitetura.md).
 
 ## Custo e cold start
 

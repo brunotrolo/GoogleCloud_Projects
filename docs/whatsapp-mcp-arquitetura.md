@@ -75,15 +75,28 @@ Conectores → Adicionar conector personalizado → **URL** = `https://<IP>.ssli
 `/etc/systemd/system/whatsapp-mcp.env` na VM.
 
 ### Ferramentas (MCP)
-- `enviar_mensagem_whatsapp(texto)` — envia e **confirma a entrega** (espera o recibo do
-  WhatsApp por até 7s). Retorna `{ entregue, status, id }`. `entregue=false` ⇒ chegou ao
-  servidor mas não ao aparelho (destino offline) → o orquestrador reenvia/loga.
-- `verificar_status_envio(id)` — reconfere entrega/leitura de um envio anterior.
-- `verificar_status_conexao()` — observabilidade: canal online? desde quando? última entrega OK?
-  Use antes de um alerta crítico.
 
-Status de mensagem: `pendente → enviado_ao_servidor → entregue → lido` (via evento Baileys
-`messages.update`). O ack de **entrega** não depende de recibos de leitura; o `lido` é best-effort.
+Todo envio **confirma a entrega** (espera o recibo do WhatsApp por até 7s) e retorna
+`{ entregue, status, id }`. `entregue=false` ⇒ chegou ao servidor mas não ao aparelho (destino
+offline) → o orquestrador reenvia/loga. Status: `pendente → enviado_ao_servidor → entregue → lido`
+(via evento Baileys `messages.update`); o ack de entrega não depende de recibos de leitura.
+
+**Recomendadas (sempre ligadas):** `enviar_mensagem_whatsapp`, `enviar_imagem_whatsapp`,
+`enviar_documento_whatsapp`, `ler_mensagens_recebidas` (two-way), `verificar_status_envio`,
+`verificar_status_conexao`.
+
+**Extras (desligadas por padrão — `HABILITAR_FERRAMENTAS_EXTRAS=true`):** `enviar_audio_whatsapp`,
+`enviar_video_whatsapp`, `enviar_sticker_whatsapp`, `responder_mensagem_whatsapp` (reply),
+`editar_mensagem_whatsapp`, `apagar_mensagem_whatsapp`, `reagir_mensagem_whatsapp`,
+`marcar_como_lida_whatsapp`, `enviar_presenca_whatsapp`. Implementadas para exploração futura;
+só aparecem/funcionam com a flag ligada. Cada capacidade "bot-like" a mais aumenta o risco de
+banimento — para alertas pessoais, mantenha só o necessário.
+
+**Para autorizar os extras** (na VM):
+```bash
+echo 'HABILITAR_FERRAMENTAS_EXTRAS=true' | sudo tee -a /etc/systemd/system/whatsapp-mcp.env
+sudo systemctl restart whatsapp-mcp
+```
 
 ### Endpoints HTTP
 - `POST /mcp/:key` — MCP autenticado pela chave no path (usado pelo claude.ai).

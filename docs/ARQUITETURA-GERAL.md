@@ -20,7 +20,8 @@ São duas frentes que convivem no mesmo repositório `GoogleCloud_Projects`:
 2. **Três servidores MCP** que dão ao Claude ferramentas de mercado, carteira e alertas:
    - **OpLab** — dados de mercado, IV Rank, estrutura de preço, backtests, manejo.
    - **Cockpit** — a carteira/posições e o risco (lê a planilha Google Sheets).
-   - **WhatsApp** — envia alertas (e recebe comandos) no WhatsApp pessoal.
+   - **WhatsApp** — envia alertas no WhatsApp pessoal (texto, **imagem/gráfico, documento e
+     alerta falado por voz humana**) com confirmação de entrega, e recebe comandos (two-way).
 
 O Claude (claude.ai) é o **orquestrador**: conecta nos 3 MCPs, lê mercado/carteira e pode
 te alertar no WhatsApp com confirmação de entrega.

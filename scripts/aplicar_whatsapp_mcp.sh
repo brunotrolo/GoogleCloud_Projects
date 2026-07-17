@@ -119,7 +119,11 @@ fi
 
 cp /opt/whatsapp-mcp/whatsapp-mcp.service /etc/systemd/system/whatsapp-mcp.service
 systemctl daemon-reload
-systemctl enable --now whatsapp-mcp
+systemctl enable whatsapp-mcp
+# restart (não "enable --now"): num reboot/reset o systemd já subiu o serviço com o
+# código ANTIGO antes do git pull acima terminar; "enable --now" não reinicia um
+# serviço já rodando, então o código novo não entrava. restart força pegar o pull.
+systemctl restart whatsapp-mcp
 
 cat > /etc/caddy/Caddyfile <<CADDYFILE
 $HOSTNAME {

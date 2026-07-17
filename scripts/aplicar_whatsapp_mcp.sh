@@ -80,7 +80,8 @@ cat > "$WORK/startup-script.sh" <<STARTUP
 #!/usr/bin/env bash
 set -e
 apt-get update -qq
-apt-get install -y -qq git curl debian-keyring debian-archive-keyring apt-transport-https gnupg
+# ffmpeg: transcodifica áudio para ogg/opus (notas de voz/PTT do WhatsApp). Idempotente.
+apt-get install -y -qq git curl debian-keyring debian-archive-keyring apt-transport-https gnupg ffmpeg
 
 if ! command -v node >/dev/null; then
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -

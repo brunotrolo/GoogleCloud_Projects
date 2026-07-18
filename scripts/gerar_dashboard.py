@@ -34,12 +34,15 @@ def run_sql_file(fname: str):
               .replace("@LOGS@", LOGS_TABLE or "")
               .replace("@START@", START.isoformat())
               .replace("@END@", END.isoformat()))
+    # SQL via STDIN (não como argumento): os .sql começam com um comentário "-- ..."
+    # que o parser de flags do bq confundiria com uma flag e abortaria com
+    # "FATAL Flags parsing error". Via stdin, o bq trata tudo como query.
     out = subprocess.run(
-        ["bq", "query", "--use_legacy_sql=false", "--format=prettyjson", "--", sql],
-        capture_output=True, text=True,
+        ["bq", "query", "--use_legacy_sql=false", "--format=prettyjson"],
+        input=sql, capture_output=True, text=True,
     )
     if out.returncode != 0:
-        print(f"AVISO: falha em {fname}: {out.stderr}", file=sys.stderr)
+        print(f"AVISO: falha em {fname}: {out.stderr or out.stdout}", file=sys.stderr)
         return []
     return json.loads(out.stdout or "[]")
 

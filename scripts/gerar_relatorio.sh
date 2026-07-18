@@ -53,11 +53,15 @@ run_query () {
              -e "s|@START@|${START}|g" \
              -e "s|@END@|${END}|g" "$file")"
 
-  if bq query --use_legacy_sql=false --format=prettyjson -- "$sql" > /tmp/q.json 2>/tmp/q.err; then
+  # O SQL vai pelo STDIN do bq (e não como argumento posicional). Os .sql começam
+  # com um comentário "-- ...", que o parser de flags do bq confundiria com uma
+  # flag ("FATAL Flags parsing error: Unknown command line flag '-- ...'") se
+  # passado como argumento. Via stdin, o bq trata tudo como query, sem parsear.
+  if printf '%s\n' "$sql" | bq query --use_legacy_sql=false --format=prettyjson > /tmp/q.json 2>/tmp/q.err; then
     python3 scripts/json_to_md.py /tmp/q.json >> "$OUT" || echo "_(sem linhas / erro ao formatar)_" >> "$OUT"
   else
     echo '```' >> "$OUT"
-    cat /tmp/q.err >> "$OUT"
+    cat /tmp/q.err /tmp/q.json 2>/dev/null | head -40 >> "$OUT"
     echo '```' >> "$OUT"
   fi
   echo "" >> "$OUT"

@@ -758,6 +758,22 @@ function register(srv: Server) {
   });
 }
 
+// Ícone do conector (favicon). O claude.ai deriva o ícone do conector custom a
+// partir do favicon servido no host da URL. Servimos o ícone do Google Sheets
+// (planilha verde) para dar identidade visual ao conector Cockpit.
+const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path fill="#0F9D58" d="M20 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8z"/><path fill="#0a7a43" d="M20 2l6 6h-6z"/><rect x="10" y="14" width="12" height="10" rx="1" fill="#fff"/><g stroke="#0F9D58" stroke-width="1"><path d="M10 17.3h12M10 20.6h12M16 14v10"/></g></svg>`;
+function serveFavicon(_req: any, res: any) {
+  res.set('Content-Type', 'image/svg+xml');
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.send(FAVICON_SVG);
+}
+app.get('/favicon.svg', serveFavicon);
+app.get('/favicon.ico', serveFavicon);
+app.get('/', (_req: any, res: any) => {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!doctype html><html><head><meta charset="utf-8"><title>Cockpit MCP</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"></head><body style="font-family:sans-serif"><h1>Cockpit MCP</h1><p>Servidor MCP da carteira (Google Sheets). Endpoint: <code>/mcp</code></p></body></html>`);
+});
+
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'oplab-sheets-mcp', tools: 14 }));
 
 app.listen(PORT, () => console.log(`[Sheets-MCP] Ativado na porta ${PORT}`));

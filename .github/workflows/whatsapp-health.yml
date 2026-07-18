@@ -2,28 +2,56 @@ name: WhatsApp MCP Health
 
 # Verifica 1x por dia se o canal de WhatsApp está no ar E com a sessão conectada.
 # Se o /health não responder OU "online" não for true (VM caída ou WhatsApp deslogado),
-# o job FALHA — e o GitHub notifica o dono do repositório por e-mail (Settings →
-# Notifications → Actions com e-mail ligado). É o "quem vigia o vigia": externo à VM,
-# pega inclusive o caso da sessão deslogada (VM no ar, mas WhatsApp caído).
+# o job FALHA e ABRE UM ISSUE no repositório (visível na aba Issues + notifica o dono).
+# É o "quem vigia o vigia": externo à VM, pega inclusive a sessão deslogada.
 on:
   schedule:
     - cron: '0 12 * * *'   # todo dia às 12:00 UTC (~09:00 BRT)
-  workflow_dispatch:        # permite disparar manualmente em Actions
+  workflow_dispatch:        # permite disparar manualmente em Actions → Run workflow
+
+permissions:
+  issues: write             # para abrir o issue de alerta quando cair
 
 jobs:
   health:
     runs-on: ubuntu-latest
     steps:
       - name: Checar /health do WhatsApp MCP
+        id: check
         run: |
           URL="https://34.139.120.158.sslip.io/health"
           echo "Checando $URL ..."
           RESP=$(curl -s --max-time 25 "$URL" || echo '{"erro":"sem resposta (VM fora do ar?)"}')
           echo "Resposta: $RESP"
+          echo "resp=$RESP" >> "$GITHUB_OUTPUT"
           if echo "$RESP" | grep -q '"online":true'; then
             echo "✅ Canal online e conectado."
           else
             echo "::error::WhatsApp MCP indisponível ou sessão deslogada. Resposta: $RESP"
-            echo "Ação: SSH na VM → journalctl -u whatsapp-mcp; se deslogado, re-parear via QR (ver docs/whatsapp-mcp-monitoramento.md)."
             exit 1
           fi
+
+      - name: Abrir issue de alerta se o canal caiu
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITULO="⚠️ WhatsApp MCP fora do ar — $(date -u +%Y-%m-%d)"
+          # Evita duplicar: se já houver um issue aberto com o label 'whatsapp-health', não cria outro.
+          EXISTE=$(gh issue list --repo "${{ github.repository }}" --state open --label whatsapp-health --json number --jq 'length')
+          if [ "${EXISTE:-0}" -gt 0 ]; then
+            echo "Já existe issue aberto de health — não duplico."
+            exit 0
+          fi
+          gh label create whatsapp-health --repo "${{ github.repository }}" --color b60205 --description "Alertas do monitor de saúde do WhatsApp MCP" 2>/dev/null || true
+          gh issue create --repo "${{ github.repository }}" --label whatsapp-health \
+            --title "$TITULO" \
+            --body "O health check do WhatsApp MCP falhou (canal fora do ar ou sessão deslogada).
+
+          **Resposta do /health:** \`${{ steps.check.outputs.resp }}\`
+
+          **O que fazer:** siga o runbook em \`docs/whatsapp-mcp-monitoramento.md\` (checar health → restart → re-parear via QR).
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Feche este issue quando o canal voltar."
